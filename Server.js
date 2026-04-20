@@ -8,7 +8,7 @@ const pool = require('./db');
 // Import routes (we'll create these next)
 const menuRoutes = require('./routes/menu');
 const orderRoutes = require('./routes/orders');
-//const authRoutes = require('./routes/auth');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 
@@ -18,7 +18,7 @@ app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
 // Routes
-//app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/orders', orderRoutes);
 
@@ -53,4 +53,6 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Test the API at http://localhost:${PORT}/api/test`);
   console.log(`Test DB at http://localhost:${PORT}/api/test-db`);
+  console.log(`Auth API http://localhost:${PORT}/api/auth`);
+  console.log(`Menu API http://localhost:${PORT}/api/menu`);
 });
