@@ -9,8 +9,8 @@ import pizza3 from "./assets/pizza3.jpg"
 import pizza4 from "./assets/pizza4.jpg"
 import pizza5 from "./assets/pizza5.jpg"
 import {useNavigate} from "react-router-dom";
-import {Button} from "@/components/ui/button";
-import {Card, CardTitle, CardContent} from "@/components/ui/card";
+import {Button} from "./components/ui/button";
+import {Card, CardTitle, CardContent} from "./components/ui/card";
 
 export default function MainPage() {
     const navigate = useNavigate()
@@ -52,8 +52,8 @@ export default function MainPage() {
         <Button className="bg-red-950 items-center h-10 rounded-md p-2 text-white">Order Online</Button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5 px-3 mt-10">
-            {menuItems.map((items) => (
-                <Card className= "flex flex-col items-center bg-red-950 m-5 rounded-md w-50 h-90">
+            {menuItems.map((items, index) => (
+                <Card key={`${items.name}-${index}`} className= "flex flex-col items-center bg-red-950 m-5 rounded-md w-50 h-90">
                     <img src={items.image} className="p-1 h-40 rounded-md mx-full"/>
                     <CardTitle className="self-start mt-15 ml-2 text-white text-xl">{items.price} ETB</CardTitle>
                     <CardContent>
