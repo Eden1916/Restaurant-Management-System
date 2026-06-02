@@ -51,11 +51,11 @@ export default function MainPage() {
         <Button className=" bg-red-950 items-center ml-auto h-10 rounded-md p-2 text-white">Reserve Table</Button>
         <Button className="bg-red-950 items-center h-10 rounded-md p-2 text-white">Order Online</Button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5 px-3 mt-10">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-2 md:gap-3 lg:gap-5 mt-10">
             {menuItems.map((items, index) => (
-                <Card key={`${items.name}-${index}`} className= "flex flex-col items-center bg-red-950 m-5 rounded-md w-50 h-90">
-                    <img src={items.image} className="p-1 h-40 rounded-md mx-full"/>
-                    <CardTitle className="self-start mt-15 ml-2 text-white text-xl">{items.price} ETB</CardTitle>
+                <Card key={`${items.name}-${index}`} className= "flex flex-col items-center bg-red-950 rounded-md w-50 h-90">
+                    <img src={items.image} className="p-1 h-40 rounded-md mx-full min-h-40 min-w-full"/>
+                    <CardTitle className="self-start mt-10 ml-2 text-white text-xl">{items.price} ETB</CardTitle>
                     <CardContent>
                         <p className="self-start mt-1 ml-2 text-white text-xl">{items.name}</p>
                         <Button className="bg-white text-red-950 rounded-md p-2 mt-5 mb-5">Order Now</Button>
