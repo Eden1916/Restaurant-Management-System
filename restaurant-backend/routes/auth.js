@@ -6,8 +6,8 @@ const pool = require('../db');
 const { hashPassword, comparePassword } = require('../utils/hash');
 
 // REGISTER - Create a new user account
-router.post('/register', async (req, res) => {
-  const { username, email, password, fullName } = req.body;
+router.post('/signup', async (req, res) => {
+  const { username, email, password } = req.body;
   
   // Validate required fields
   if (!username || !email || !password) {
@@ -34,10 +34,10 @@ router.post('/register', async (req, res) => {
     
     // Insert new user (default role is 'customer')
     const result = await pool.query(
-      `INSERT INTO users (username, email, password_hash, role, full_name) 
+      `INSERT INTO users (username, email, password_hash, role) 
        VALUES ($1, $2, $3, 'customer', $4) 
-       RETURNING id, username, email, role, full_name`,
-      [username, email, hashedPassword, fullName || username]
+       RETURNING id, username, email, role`,
+      [username, email, hashedPassword || username]
     );
     
     const user = result.rows[0];
@@ -60,8 +60,7 @@ router.post('/register', async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role,
-        fullName: user.full_name
+        role: user.role
       }
     });
     
@@ -84,7 +83,7 @@ router.post('/login', async (req, res) => {
   try {
     // Find user by username
     const result = await pool.query(
-      'SELECT id, username, email, password_hash, role, full_name, is_active FROM users WHERE username = $1',
+      'SELECT id, username, email, password_hash, role, is_active FROM users WHERE username = $1',
       [username]
     );
     
@@ -124,8 +123,7 @@ router.post('/login', async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role,
-        fullName: user.full_name
+        role: user.role
       }
     });
     
