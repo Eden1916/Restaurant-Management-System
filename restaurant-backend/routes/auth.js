@@ -35,9 +35,9 @@ router.post('/signup', async (req, res) => {
     // Insert new user (default role is 'customer')
     const result = await pool.query(
       `INSERT INTO users (username, email, password_hash, role) 
-       VALUES ($1, $2, $3, 'customer', $4) 
+       VALUES ($1, $2, $3, 'customer') 
        RETURNING id, username, email, role`,
-      [username, email, hashedPassword || username]
+      [username, email, hashedPassword]
     );
     
     const user = result.rows[0];
@@ -54,6 +54,7 @@ router.post('/signup', async (req, res) => {
     );
     
     res.status(201).json({
+      success: true,
       message: 'User registered successfully',
       token,
       user: {
@@ -72,19 +73,20 @@ router.post('/signup', async (req, res) => {
 
 // LOGIN - Authenticate existing user
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
   
-  if (!username || !password) {
+  if (!email || !password) {
     return res.status(400).json({ 
-      error: 'Username and password are required' 
+      success: false,
+      message: 'Email and password are required' 
     });
   }
   
   try {
-    // Find user by username
+    // Find user by email
     const result = await pool.query(
-      'SELECT id, username, email, password_hash, role, is_active FROM users WHERE username = $1',
-      [username]
+      'SELECT id, username, email, password_hash, role, is_active FROM users WHERE email = $1',
+      [email]
     );
     
     if (result.rows.length === 0) {
@@ -117,6 +119,7 @@ router.post('/login', async (req, res) => {
     );
     
     res.json({
+      success: true,
       message: 'Login successful',
       token,
       user: {
