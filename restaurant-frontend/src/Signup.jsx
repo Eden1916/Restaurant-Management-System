@@ -1,8 +1,15 @@
 import sign from "./assets/sign.jpg"
 import {Button} from "./components/ui/button"
+import {useNavigate} from "react-router-dom"
 export default function Signup(){
+    const navigate = useNavigate()
+
     function backtoLogin(){
-        window.location.href="/Login"
+        navigate("/Login")
+    }
+
+    function handleSignup(){
+        navigate("customer/dashboard")
     }
     return(
         <>
@@ -15,7 +22,7 @@ export default function Signup(){
             <input className="w-60 h-10 bg-white rounded-md p-2 required"/>
             <label>Password</label>
             <input className="w-60 h-10 bg-white rounded-md p-2 required"/>
-            <Button className="bg-red-950 text-white rounded-md p-2 mt-5 mb-5 cursor-pointer">Signup</Button>
+            <Button className="bg-red-950 text-white rounded-md p-2 mt-5 mb-5 cursor-pointer" onClick={handleSignup}>Signup</Button>
             <p className="text-center">Already have an account? <a className="text-blue-700 cursor-pointer" onClick={backtoLogin}>Login</a></p>
         </div>
         </>
