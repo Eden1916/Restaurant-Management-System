@@ -9,6 +9,7 @@ const pool = require('./db');
 const menuRoutes = require('./routes/menu');
 const orderRoutes = require('./routes/orders');
 const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Basic test route
 app.get('/api/test', (req, res) => {
@@ -61,4 +63,5 @@ app.listen(PORT, () => {
   console.log(`Test DB at http://localhost:${PORT}/api/test-db`);
   console.log(`Auth API http://localhost:${PORT}/api/auth`);
   console.log(`Menu API http://localhost:${PORT}/api/menu`);
+  console.log('Orders API http://localhost:${PORT}/api/admin')
 });

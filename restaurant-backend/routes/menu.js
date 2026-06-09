@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const {authenticateToken} = require('../middleware/auth');
+const {authenticate} = require('../middleware/auth');
 const {authorize} = require('../middleware/role')
 
 
@@ -44,7 +44,7 @@ router.get('/menu/:id', async (req, res)=>{
   }
 })
 
-router.post('/', authenticateToken, authorize('admin'), async (req, res) =>{
+router.post('/', authenticate, authorize('admin'), async (req, res) =>{
   try{
     const {category_id, name, description, price, is_available, image_url} = req.body;
     if(!category_id || !name || !price){
@@ -62,7 +62,7 @@ router.post('/', authenticateToken, authorize('admin'), async (req, res) =>{
   }
 );
 
-router.put('/:id', authenticateToken, authorize('admin'), async(req, res)=>{
+router.put('/:id', authenticate, authorize('admin'), async(req, res)=>{
   try{
     const {id}= req.params.id;
     const {category_id, name, description, price, is_available, image_url} = req.body;
@@ -79,7 +79,7 @@ router.put('/:id', authenticateToken, authorize('admin'), async(req, res)=>{
   }
 })
 
-router.delete('/:id', authenticateToken, authorize('admin'), async(req, res)=>{
+router.delete('/:id', authenticate, authorize('admin'), async(req, res)=>{
   try{
     const {id} = req.params.id;
     const query = `UPDATE menu_item SET is_available = false WHERE id = $1`
