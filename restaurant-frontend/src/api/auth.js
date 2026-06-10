@@ -9,7 +9,7 @@ export const authLogin = async(email, password)=>{
         body:JSON.stringify({email, password})
     })
     const data = await res.json();
-  if (!data.success) throw new Error(data.message);
+  if (!data.success) throw new Error(data.error || data.message || 'Login failed');
   
   // Store token and user info
   localStorage.setItem('token', data.token);
@@ -24,7 +24,7 @@ export const authSignup = async (userData) => {
     body: JSON.stringify(userData)
   });
   const data = await response.json();
-  if (!data.success) throw new Error(data.message);
+  if (!data.success) throw new Error(data.error || data.message || 'Signup failed');
   
   localStorage.setItem('token', data.token);
   localStorage.setItem('user', JSON.stringify(data.user));
