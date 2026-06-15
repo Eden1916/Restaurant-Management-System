@@ -23,6 +23,7 @@ app.use(cors({
 )); // Allow frontend to access API
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use('/uploads', express.static('uploads')); // Serve uploaded images
 
 // Routes
 app.use('/api/auth', authRoutes);
