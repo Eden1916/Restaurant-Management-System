@@ -10,6 +10,7 @@ export default function AdminMenu() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [imageFile, setImageFile] = useState(null);
   const [editId, setEditId] = useState(null);
   const token = localStorage.getItem("token");
 
@@ -31,18 +32,38 @@ export default function AdminMenu() {
       ? `${import.meta.env.VITE_API_URL}/menu/${editId}`
       : `${import.meta.env.VITE_API_URL}/menu`;
 
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ ...form, price: parseFloat(form.price) }),
-    });
+    let res;
+    if (imageFile) {
+      // Send as multipart/form-data when a file is selected
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("description", form.description);
+      formData.append("price", parseFloat(form.price));
+      formData.append("category_id", form.category_id);
+      formData.append("is_available", form.is_available);
+      formData.append("image", imageFile); // file field
+
+      res = await fetch(url, {
+        method,
+        headers: { Authorization: `Bearer ${token}` }, // no Content-Type — browser sets it with boundary
+        body: formData,
+      });
+    } else {
+      // Send as JSON when using image URL
+      res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ...form, price: parseFloat(form.price) }),
+      });
+    }
+
     const data = await res.json();
     if (res.ok) {
-      // Refresh list
       fetch(`${import.meta.env.VITE_API_URL}/menu`)
         .then((r) => r.json())
         .then((d) => setMenuItems(Array.isArray(d) ? d : []));
       setForm(emptyForm);
+      setImageFile(null);
       setShowForm(false);
       setEditId(null);
     } else {
@@ -61,6 +82,7 @@ export default function AdminMenu() {
     });
     setEditId(item.id);
     setShowForm(true);
+    setImageFile(null);
   }
 
   async function handleDelete(id) {
@@ -116,6 +138,9 @@ export default function AdminMenu() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
                 <input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950" />
+                  <span>OR</span>
+                  <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} 
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950" />
               </div>
               <div className="md:col-span-2">
