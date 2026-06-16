@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
   fileFilter: (req, file, cb) => {
     const allowed = /jpeg|jpg|png|webp/;
     const ext = allowed.test(path.extname(file.originalname).toLowerCase());
@@ -73,7 +73,15 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST create menu item (supports both JSON and multipart/form-data)
-router.post('/', authenticate, authorize('admin'), upload.single('image'), async (req, res) => {
+router.post('/', authenticate, authorize('admin'), (req, res, next) => {
+  upload.single('image')(req, res, (err) => {
+    if (err && err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'Image too large. Maximum size is 10MB.' });
+    }
+    if (err) return res.status(400).json({ error: err.message });
+    next();
+  });
+}, async (req, res) => {
   try {
     const { category_id, name, description, price, is_available } = req.body;
 
@@ -104,7 +112,15 @@ router.post('/', authenticate, authorize('admin'), upload.single('image'), async
 });
 
 // PUT update menu item
-router.put('/:id', authenticate, authorize('admin'), upload.single('image'), async (req, res) => {
+router.put('/:id', authenticate, authorize('admin'), (req, res, next) => {
+  upload.single('image')(req, res, (err) => {
+    if (err && err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'Image too large. Maximum size is 10MB.' });
+    }
+    if (err) return res.status(400).json({ error: err.message });
+    next();
+  });
+}, async (req, res) => {
   try {
     const { id } = req.params;
     const { category_id, name, description, price, is_available } = req.body;
