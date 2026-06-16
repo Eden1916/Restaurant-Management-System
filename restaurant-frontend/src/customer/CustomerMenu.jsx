@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../shared/DashboardLayout";
 import { ShoppingBag } from "lucide-react";
 
+const API_BASE = import.meta.env.VITE_API_URL.replace('/api', '');
+
+function getImageUrl(image_url) {
+  if (!image_url) return null;
+  if (image_url.startsWith('/uploads/')) return `${API_BASE}${image_url}`;
+  return image_url; // already a full URL
+}
+
 export default function CustomerMenu() {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +54,7 @@ export default function CustomerMenu() {
           {menuItems.map((item) => (
             <div key={item.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
               {item.image_url ? (
-                <img src={item.image_url} alt={item.name} className="w-full h-40 object-cover" />
+                <img src={getImageUrl(item.image_url)} alt={item.name} className="w-full h-40 object-cover" />
               ) : (
                 <div className="w-full h-40 bg-gray-100 flex items-center justify-center text-gray-300">
                   No Image

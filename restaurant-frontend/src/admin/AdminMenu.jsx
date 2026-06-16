@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../shared/DashboardLayout";
 import { UtensilsCrossed, Plus, Pencil, Trash2 } from "lucide-react";
 
+const API_BASE = import.meta.env.VITE_API_URL.replace('/api', '');
+
+function getImageUrl(image_url) {
+  if (!image_url) return null;
+  if (image_url.startsWith('/uploads/')) return `${API_BASE}${image_url}`;
+  return image_url;
+}
+
 const emptyForm = { name: "", description: "", price: "", category_id: "", image_url: "", is_available: true };
 
 export default function AdminMenu() {
@@ -179,7 +187,14 @@ export default function AdminMenu() {
               <tbody className="divide-y divide-gray-50">
                 {menuItems.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 font-medium text-gray-800">{item.name}</td>
+                    <td className="px-6 py-4 font-medium text-gray-800 flex items-center gap-3">
+                      {item.image_url ? (
+                        <img src={getImageUrl(item.image_url)} alt={item.name} className="w-10 h-10 rounded-lg object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-300 text-xs">No img</div>
+                      )}
+                      {item.name}
+                    </td>
                     <td className="px-6 py-4 text-gray-500">{item.category_name || "-"}</td>
                     <td className="px-6 py-4 text-gray-800">{item.price} ETB</td>
                     <td className="px-6 py-4">
