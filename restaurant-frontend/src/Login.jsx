@@ -18,7 +18,7 @@ export default function Login(){
                     navigate("/admin/dashboard");
                     break;
                 case "waiter":
-                    navigate("/waiiter/dashboard");
+                    navigate("/waiter/dashboard");
                     break;
                 case "chef":
                     navigate("/chef/dashboard");
