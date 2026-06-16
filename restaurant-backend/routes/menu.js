@@ -86,11 +86,14 @@ router.post('/', authenticate, authorize('admin'), upload.single('image'), async
       ? `/uploads/${req.file.filename}`
       : (req.body.image_url || null);
 
+    // Convert is_available to boolean — FormData sends strings
+    const isAvailable = is_available === false || is_available === 'false' ? false : true;
+
     const query = `
       INSERT INTO menu_items (category_id, name, description, price, is_available, image_url)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *`;
-    const values = [category_id, name, description, price, is_available ?? true, image_url];
+    const values = [category_id, name, description, parseFloat(price), isAvailable, image_url];
     const result = await pool.query(query, values);
 
     res.status(201).json({ message: 'Menu item created successfully', item: result.rows[0] });
@@ -111,13 +114,16 @@ router.put('/:id', authenticate, authorize('admin'), upload.single('image'), asy
       ? `/uploads/${req.file.filename}`
       : (req.body.image_url || null);
 
+    // Convert is_available to boolean — FormData sends strings
+    const isAvailable = is_available === false || is_available === 'false' ? false : true;
+
     const query = `
       UPDATE menu_items
       SET category_id = $1, name = $2, description = $3, price = $4,
           is_available = $5, image_url = COALESCE($6, image_url)
       WHERE id = $7
       RETURNING *`;
-    const values = [category_id, name, description, price, is_available, image_url, id];
+    const values = [category_id, name, description, parseFloat(price), isAvailable, image_url, id];
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {

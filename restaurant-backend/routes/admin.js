@@ -1,41 +1,52 @@
-// backend/routes/admin.js
 const express = require('express');
 const router = express.Router();
-const { User } = require('../db');
-const { authenticate, authorize } = require('../middleware/auth'); // see below
+const pool = require('../db');
+const { authenticate } = require('../middleware/auth');
+const { authorize } = require('../middleware/role');
 
-// Only admin can access
-router.put('/users/:userId/role', authenticate, authorize(['admin']), async (req, res) => {
+// GET all users (admin only)
+router.get('/users', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { newRole } = req.body;
-    
-    const allowedRoles = ['admin', 'chef', 'waiter', 'customer']; // define your roles
-    if (!allowedRoles.includes(newRole)) {
-      return res.status(400).json({ success: false, message: 'Invalid role' });
-    }
-    
-    const user = await User.findByPk(userId);
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
-    
-    // Prevent admin from accidentally removing own admin role (optional safety)
-    if (userId === req.user.id && newRole !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Cannot demote yourself' });
-    }
-    
-    user.role = newRole;
-    await user.save();
-    
-    res.json({ success: true, user: { id: user.id, name: user.username, email: user.email, role: user.role } });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    const result = await pool.query(
+      'SELECT id, username, email, role, is_active, created_at FROM users ORDER BY created_at DESC'
+    );
+    res.json({ success: true, users: result.rows });
+  } catch (err) {
+    console.error('Get users error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch users' });
   }
 });
 
-// Get all users (admin only)
-router.get('/users', authenticate, authorize(['admin']), async (req, res) => {
-  const users = await User.findAll({ attributes: { exclude: ['password'] } });
-  res.json({ success: true, users });
+// PUT update user role (admin only)
+router.put('/users/:userId/role', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { newRole } = req.body;
+
+    const allowedRoles = ['admin', 'chef', 'waiter', 'customer'];
+    if (!allowedRoles.includes(newRole)) {
+      return res.status(400).json({ success: false, message: 'Invalid role' });
+    }
+
+    // Prevent admin from demoting themselves
+    if (parseInt(userId) === req.user.userId && newRole !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Cannot demote yourself' });
+    }
+
+    const result = await pool.query(
+      'UPDATE users SET role = $1 WHERE id = $2 RETURNING id, username, email, role',
+      [newRole, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.json({ success: true, user: result.rows[0] });
+  } catch (err) {
+    console.error('Update role error:', err);
+    res.status(500).json({ success: false, message: 'Failed to update role' });
+  }
 });
 
 module.exports = router;
