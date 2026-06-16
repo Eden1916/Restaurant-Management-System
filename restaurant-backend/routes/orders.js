@@ -15,7 +15,7 @@ router.post('/', authenticate, async (req, res) => {
     order_type,
     delivery_address,
     delivery_phone,
-    special_instruction,
+    special_instructions,
     payment_method,
     bank_id,
   } = req.body;
@@ -32,9 +32,9 @@ router.post('/', authenticate, async (req, res) => {
     const orderResult = await pool.query(
       `INSERT INTO orders (
         user_id, total_amount, status, order_type,
-        delivery_address, delivery_phone, special_instruction,
+        delivery_address, delivery_phone, special_instructions,
         payment_method, payment_status, tx_ref, bank_id
-      ) VALUES ($1,$2,'pending',$3,$4,$5,$6,$7,'pending',$8,$9)
+      ) VALUES ($1,$2,'pending_payment',$3,$4,$5,$6,$7,'pending',$8,$9)
       RETURNING *`,
       [
         user.userId,
@@ -42,8 +42,8 @@ router.post('/', authenticate, async (req, res) => {
         order_type || 'dine_in',
         delivery_address || null,
         delivery_phone || null,
-        special_instruction || null,
-        payment_method || 'chapa',
+        special_instructions || null,
+        payment_method || 'tele_birr',
         tx_ref,
         bank_id || null,
       ]
@@ -65,15 +65,15 @@ router.post('/', authenticate, async (req, res) => {
       {
         amount: total_amount,
         currency: 'ETB',
-        email: user.email || 'customer@liyurestaurant.com',
+        email: user.email || `user${user.userId}@liyurestaurant.com`,
         first_name: user.username || 'Customer',
-        last_name: '',
+        last_name: 'Customer',
         tx_ref,
         callback_url: `http://localhost:5000/api/orders/verify/${tx_ref}`,
         return_url: `http://localhost:5173/customer/orders?payment=success`,
         customization: {
           title: 'Liyu Restaurant',
-          description: `Order #${order.id}`,
+          description: `Order ${order.id}`,
         },
       },
       {
@@ -111,7 +111,7 @@ router.get('/verify/:tx_ref', async (req, res) => {
       await pool.query(
         `UPDATE orders
          SET payment_status = 'paid',
-             status = 'confirmed',
+             status = 'payment_verified',
              payment_id = $1,
              payment_reference = $2,
              payment_verified_at = NOW()
@@ -120,7 +120,7 @@ router.get('/verify/:tx_ref', async (req, res) => {
       );
     } else {
       await pool.query(
-        `UPDATE orders SET payment_status = 'failed' WHERE tx_ref = $1`,
+        `UPDATE orders SET payment_status = 'failed', status = 'payment_failed' WHERE tx_ref = $1`,
         [tx_ref]
       );
     }

@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+console.log('Chapa key:', process.env.CHAPA_SECRET_KEY);
+
 
 // Import database connection
 const pool = require('./db');

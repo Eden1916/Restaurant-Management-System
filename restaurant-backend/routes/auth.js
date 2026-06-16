@@ -46,7 +46,8 @@ router.post('/signup', async (req, res) => {
     const token = jwt.sign(
       { 
         userId: user.id, 
-        username: user.username, 
+        username: user.username,
+        email: user.email,
         role: user.role 
       },
       process.env.JWT_SECRET,
@@ -111,7 +112,8 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign(
       { 
         userId: user.id, 
-        username: user.username, 
+        username: user.username,
+        email: user.email,
         role: user.role 
       },
       process.env.JWT_SECRET,
