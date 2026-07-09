@@ -12,6 +12,13 @@ export default function Login(){
     async function handleLogin(){
         try{
             const user = await authLogin(email, password);
+            const intendedPage = localStorage.getItem("intendedPage");
+
+            if(intendedPage){
+                localStorage.removeItem("intendedPage");
+                navigate(intendedPage);
+                return;
+            }
 
             switch(user.role){
                 case "admin":
@@ -24,7 +31,7 @@ export default function Login(){
                     navigate("/chef/dashboard");
                     break;
                     default:
-                        navigate("/customer/dashboard");
+                        navigate(intendedPage || "/customer/dashboard");
                 }
             }
             catch(error){

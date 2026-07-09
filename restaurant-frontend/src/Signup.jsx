@@ -8,6 +8,7 @@ export default function Signup(){
     const [username, setUsername] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const intendedPage = () => localStorage.getItem("intendedPage")
 
     function backtoLogin(){
         navigate("/Login")
@@ -15,8 +16,28 @@ export default function Signup(){
 
     async function handleSignup(){
         try {
-            await authSignup({ username, email, password })
-            navigate("/customer/dashboard")
+            const user = await authSignup({ username, email, password })
+
+            const dest = intendedPage();
+            if (dest) {
+                localStorage.removeItem("intendedPage")
+                navigate(dest)
+                return
+            }
+
+            switch (user.role) {
+                case "admin":
+                    navigate("/admin/dashboard")
+                    break
+                case "waiter":
+                    navigate("/waiter/dashboard")
+                    break
+                case "chef":
+                    navigate("/chef/dashboard")
+                    break
+                default:
+                    navigate("/customer/dashboard")
+            }
         } catch(error) {
             alert(error.message)
         }

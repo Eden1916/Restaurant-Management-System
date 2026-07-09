@@ -21,6 +21,27 @@ export default function MainPage() {
     function handleSignup(){
         navigate("/Signup")
     }
+
+    function handleReservation(){
+        const token = localStorage.getItem("token")
+        if(!token){
+            localStorage.setItem("intendedPage", "/customer/reservations")
+            navigate("/Login")
+            return;
+        }
+
+        navigate("/customer/reservations")
+    }
+        function handleOrderedItem(){
+            const token = localStorage.getItem("token")
+            if(!token){
+                localStorage.setItem("intendedPage", "/customer/menu")
+                navigate("/Login")
+                return
+            }
+            navigate("/customer/menu")
+        }
+
     const menuItems = [
         {name: "Burger", price: 600, image: Burger},
         {name: "Burger1", price: 600, image: Burger1},
@@ -48,8 +69,8 @@ export default function MainPage() {
         </nav>
         <h2 className = "text-4xl text-red-950 text-center absolute inset-0 flex justify-center mt-20 font-bold font-['Perpetua_Titling_MT'] max-w-md mx-auto">Welcome To Liyu Restaurant Website</h2>
         <div className="absolute inset-0 flex gap-10 px-10 mt-120">
-        <Button className=" bg-red-950 items-center ml-auto h-10 rounded-md p-2 text-white">Reserve Table</Button>
-        <Button className="bg-red-950 items-center h-10 rounded-md p-2 text-white">Order Online</Button>
+        <Button className=" bg-red-950 items-center ml-auto h-10 rounded-md p-2 text-white" onClick={handleReservation}>Reserve Table</Button>
+        <Button className="bg-red-950 items-center h-10 rounded-md p-2 text-white" onClick={handleOrderedItem}>Order Online</Button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-2 md:gap-3 lg:gap-5 mt-10">
             {menuItems.map((items, index) => (
