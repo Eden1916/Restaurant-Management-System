@@ -2,9 +2,24 @@ import { useState } from "react";
 import DashboardLayout from "../shared/DashboardLayout";
 import { CalendarDays } from "lucide-react";
 
+// Generate time slots in 30-minute intervals with 12-hour format
+const generateTimeSlots = () => {
+  const slots = [];
+  for (let hour = 10; hour < 22; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const period = hour >= 12 ? "PM" : "AM";
+      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      const time = `${String(displayHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+      slots.push({ time, period });
+    }
+  }
+  return slots;
+};
+
 export default function CustomerReservations() {
-  const [form, setForm] = useState({ date: "", time: "", guests: 1, note: "" });
+  const [form, setForm] = useState({ date: "", time: "", period: "AM", guests: 1, note: "" });
   const [submitted, setSubmitted] = useState(false);
+  const timeSlots = generateTimeSlots();
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -45,13 +60,28 @@ export default function CustomerReservations() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
-                <input
-                  type="time"
-                  required
-                  value={form.time}
-                  onChange={(e) => setForm({ ...form, time: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950"
-                />
+                <div className="flex gap-2">
+                  <select
+                    required
+                    value={form.time}
+                    onChange={(e) => setForm({ ...form, time: e.target.value })}
+                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950">
+                    <option value="">Select a time</option>
+                    {timeSlots.map((slot) => (
+                      <option key={`${slot.time}-${slot.period}`} value={slot.time}>
+                        {slot.time}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    required
+                    value={form.period}
+                    onChange={(e) => setForm({ ...form, period: e.target.value })}
+                    className="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950">
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Number of Guests</label>
