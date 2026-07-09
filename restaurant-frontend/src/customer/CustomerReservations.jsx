@@ -5,7 +5,7 @@ import { CalendarDays } from "lucide-react";
 // Generate time slots in 30-minute intervals with 12-hour format
 const generateTimeSlots = () => {
   const slots = [];
-  for (let hour = 10; hour < 22; hour++) {
+  for (let hour = 6; hour < 22; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
       const period = hour >= 12 ? "PM" : "AM";
       const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
