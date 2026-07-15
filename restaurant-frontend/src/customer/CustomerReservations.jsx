@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardLayout from "../shared/DashboardLayout";
 import { CalendarDays } from "lucide-react";
+import { reservation, getReservationsForUser } from "../api/reservation";
 
 // Generate time slots in 30-minute intervals with 12-hour format
 const generateTimeSlots = () => {
@@ -19,13 +20,44 @@ const generateTimeSlots = () => {
 export default function CustomerReservations() {
   const [form, setForm] = useState({ date: "", time: "", period: "AM", guests: 1, note: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [reservations, setReservations] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const timeSlots = generateTimeSlots();
 
-  function handleSubmit(e) {
+  const getCurrentUserId = () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    return user._id || user.id || user.email;
+  };
+
+  const loadReservations = () => {
+    const userId = getCurrentUserId();
+    setReservations(getReservationsForUser(userId));
+  };
+
+  useEffect(() => {
+    loadReservations();
+  }, []);
+
+  async function handleSubmit(e) {
     e.preventDefault();
-    // TODO: connect to reservations API
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+    setIsSubmitting(true);
+
+    try {
+      await reservation({
+        date: form.date,
+        time: `${form.time} ${form.period}`,
+        guests: Number(form.guests),
+        note: form.note,
+      });
+
+      setSubmitted(true);
+      setForm({ date: "", time: "", period: "AM", guests: 1, note: "" });
+      loadReservations();
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -107,9 +139,9 @@ export default function CustomerReservations() {
               </div>
               <button
                 type="submit"
-                className="w-full bg-red-950 text-white py-2.5 rounded-lg font-medium hover:bg-red-800 transition"
-              >
-                Book Table
+                disabled={isSubmitting}
+                className="w-full bg-red-950 text-white py-2.5 rounded-lg font-medium hover:bg-red-800 transition disabled:opacity-70">
+                {isSubmitting ? "Booking..." : "Book Table"}
               </button>
             </form>
           </div>
@@ -117,10 +149,27 @@ export default function CustomerReservations() {
           {/* My reservations */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-lg font-semibold text-red-950 mb-4">My Reservations</h2>
-            <div className="text-center py-10 text-gray-400">
-              <CalendarDays className="w-12 h-12 mx-auto mb-2 opacity-30" />
-              <p>No reservations yet</p>
-            </div>
+            {reservations.length > 0 ? (
+              <div className="space-y-3">
+                {reservations.map((item) => (
+                  <div key={item.id} className="border border-gray-100 rounded-lg p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-medium text-red-950">{item.date} • {item.time}</p>
+                      <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 capitalize">
+                        {item.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">{item.guests} guests</p>
+                    {item.note ? <p className="text-sm text-gray-500 mt-1">{item.note}</p> : null}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10 text-gray-400">
+                <CalendarDays className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p>No reservations yet</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
