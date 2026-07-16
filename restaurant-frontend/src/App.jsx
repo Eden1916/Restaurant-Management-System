@@ -3,7 +3,7 @@ import MainPage from "./MainPage.jsx";
 import Login from "./Login.jsx";
 import Signup from "./Signup.jsx";
 
-// Customer
+import CustomerReviews from "./customer/CustomerReviews.jsx";
 import CustomerDashboard from "./customer/CustomerDashboard.jsx";
 import CustomerOrders from "./customer/CustomerOrders.jsx";
 import CustomerMenu from "./customer/CustomerMenu.jsx";
@@ -48,6 +48,7 @@ function App() {
       <Route path="/customer/orders" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerOrders /></ProtectedRoute>} />
       <Route path="/customer/menu" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerMenu /></ProtectedRoute>} />
       <Route path="/customer/reservations" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerReservations /></ProtectedRoute>} />
+      <Route path="/customer/reviews" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerReviews /></ProtectedRoute>} />
 
       {/* Admin */}
       <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
