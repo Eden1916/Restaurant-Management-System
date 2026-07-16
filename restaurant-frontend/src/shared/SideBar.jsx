@@ -9,6 +9,7 @@ import {
   LogOut,
   ChefHat,
   X,
+  Star,
 } from "lucide-react";
 import { authLogout } from "../api/auth";
 
@@ -52,6 +53,14 @@ const menuItems = [
       admin: "/admin/reservations",
       waiter: "/waiter/reservations",
       customer: "/customer/reservations",
+    },
+  },
+  {
+    name: "Reviews",
+    icon: Star,
+    roles: ["customer"],
+    paths: {
+      customer: "/customer/reviews",
     },
   },
   {
