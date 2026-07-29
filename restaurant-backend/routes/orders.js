@@ -110,7 +110,7 @@ router.get('/verify/:tx_ref', async (req, res) => {
     if (status === 'success') {
       await pool.query(
         `UPDATE orders
-         SET payment_status = 'paid',
+         SET payment_status = 'completed',
              status = 'payment_verified',
              payment_id = $1,
              payment_reference = $2,
@@ -181,5 +181,31 @@ router.get('/', authenticate, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
+
+// PUT /api/orders/:id/status — update order status (admin, waiter, chef)
+router.put('/:id/status', authenticate, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const allowed = ['preparing', 'ready', 'completed', 'payment_failed'];
+  if (!allowed.includes(status)) {
+    return res.status(400).json({ error: 'Invalid status' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE orders SET status = $1 WHERE id = $2 RETURNING *`,
+      [status, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    res.json({ success: true, order: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update status' });
+  }
+});
+
 
 module.exports = router;
