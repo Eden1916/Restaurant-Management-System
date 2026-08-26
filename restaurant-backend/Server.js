@@ -12,6 +12,8 @@ const menuRoutes = require('./routes/menu');
 const orderRoutes = require('./routes/orders');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
+const reviewRoutes = require('./routes/reviews');
+const reservationRoutes = require('./routes/reservations');
 
 const app = express();
 
@@ -32,6 +34,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/reservations', reservationRoutes);
 
 // Basic test route
 app.get('/api/test', (req, res) => {
