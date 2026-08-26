@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "../shared/DashboardLayout";
 import { CalendarDays } from "lucide-react";
-import { reservation, getReservationsForUser } from "../api/reservation";
 
 // Generate time slots in 30-minute intervals with 12-hour format
 const generateTimeSlots = () => {
@@ -18,47 +17,54 @@ const generateTimeSlots = () => {
 };
 
 export default function CustomerReservations() {
-  const [form, setForm] = useState({ date: "", time: "", period: "AM", guests: 1, note: "" });
+  const [form, setForm] = useState({ date: "", time: "", period: "AM", guests: 1, special_requests: "" });
   const [submitted, setSubmitted] = useState(false);
   const [reservations, setReservations] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const timeSlots = generateTimeSlots();
-
-  const getCurrentUserId = () => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    return user._id || user.id || user.email;
-  };
+  const token = localStorage.getItem("token")
 
   const loadReservations = () => {
-    const userId = getCurrentUserId();
-    setReservations(getReservationsForUser(userId));
-  };
-
-  useEffect(() => {
-    loadReservations();
-  }, []);
+  fetch(`${import.meta.env.VITE_API_URL}/reservations/my`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then((r) => r.json())
+    .then((d) => { if (d.success) setReservations(d.reservations); });
+};
+useEffect(() => {
+  loadReservations()
+}, [])
 
   async function handleSubmit(e) {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      await reservation({
-        date: form.date,
-        time: `${form.time} ${form.period}`,
+  e.preventDefault();
+  setIsSubmitting(true);
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/reservations`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        reservation_date: form.date,
+        reservation_time: `${form.time} ${form.period}`,
         guests: Number(form.guests),
-        note: form.note,
-      });
-
+        special_requests: form.special_requests,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
       setSubmitted(true);
-      setForm({ date: "", time: "", period: "AM", guests: 1, note: "" });
+      setForm({ date: "", time: "", period: "", guests: "", special_requests: "" });
       loadReservations();
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      alert(data.error || "Failed to book reservation");
     }
+  } catch {
+    alert("Something went wrong");
+  } finally {
+    setIsSubmitting(false);
   }
+}
+
 
   return (
     <DashboardLayout>
@@ -131,8 +137,8 @@ export default function CustomerReservations() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Special Requests</label>
                 <textarea
                   rows={3}
-                  value={form.note}
-                  onChange={(e) => setForm({ ...form, note: e.target.value })}
+                  value={form.special_requests}
+                  onChange={(e) => setForm({ ...form, special_requests: e.target.value })}
                   placeholder="Any dietary requirements or special requests..."
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950 resize-none"
                 />
@@ -154,13 +160,19 @@ export default function CustomerReservations() {
                 {reservations.map((item) => (
                   <div key={item.id} className="border border-gray-100 rounded-lg p-3">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="font-medium text-red-950">{item.date} • {item.time}</p>
-                      <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 capitalize">
-                        {item.status}
-                      </span>
+                      <p className="font-medium text-red-950">{item.reservation_date} • {item.reservation_time}</p>
+                      <span className={`text-xs px-2 py-1 rounded-full capitalize font-medium ${
+  item.status === 'approved' ? 'bg-green-100 text-green-700' :
+  item.status === 'rejected' ? 'bg-red-100 text-red-700' :
+  item.status === 'completed' ? 'bg-gray-100 text-gray-700' :
+  'bg-amber-100 text-amber-700'
+}`}>
+  {item.status}
+</span>
+
                     </div>
                     <p className="text-sm text-gray-500 mt-1">{item.guests} guests</p>
-                    {item.note ? <p className="text-sm text-gray-500 mt-1">{item.note}</p> : null}
+                    {item.special_requests ? <p className="text-sm text-gray-500 mt-1">{item.special_requests}</p> : null}
                   </div>
                 ))}
               </div>
