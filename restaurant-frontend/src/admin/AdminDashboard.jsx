@@ -17,16 +17,6 @@ export default function AdminDashboard() {
       })
       .catch(() => {});
 
-      // Fetch orders count
-    fetch(`${import.meta.env.VITE_API_URL}/orders`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success) setStats((s) => ({ ...s, orders: d.orders.length }));
-      })
-      .catch(() => {});
-
     // Fetch menu count
     fetch(`${import.meta.env.VITE_API_URL}/menu`)
       .then((r) => r.json())
@@ -34,6 +24,18 @@ export default function AdminDashboard() {
         if (Array.isArray(d)) setStats((s) => ({ ...s, menuItems: d.length }));
       })
       .catch(() => {});
+
+      //Fetch revenue count
+      fetch(`${import.meta.env.VITE_API_URL}/orders`, {
+        headers: {Authorization: `Bearer ${token}`},
+      })
+      .then((r) => r.json())
+      .then((d) => {
+        if(d.success) {
+          const totalRevenue = d.orders.filter(order => order.payment_status === "completed").reduce((acc, order) => acc + (parseFloat(order.total_amount) || parseFloat(order.total_price) || 0), 0);
+          setStats((s) => ({ ...s, revenue: totalRevenue.toFixed(2), orders: d.orders.length }));
+        }
+      })
   }, []);
 
   const cards = [
