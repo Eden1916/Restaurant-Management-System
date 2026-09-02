@@ -17,6 +17,16 @@ export default function AdminDashboard() {
       })
       .catch(() => {});
 
+      // Fetch orders count
+    fetch(`${import.meta.env.VITE_API_URL}/orders`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) setStats((s) => ({ ...s, orders: d.orders.length }));
+      })
+      .catch(() => {});
+
     // Fetch menu count
     fetch(`${import.meta.env.VITE_API_URL}/menu`)
       .then((r) => r.json())
