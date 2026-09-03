@@ -7,6 +7,7 @@ import { ChefHat, Eye, EyeOff, Check } from "lucide-react"
 export default function Signup() {
   const navigate = useNavigate()
   const [username, setUsername] = useState("")
+  const [usernameError, setUsernameError] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -14,6 +15,10 @@ export default function Signup() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+  function isValidUsername(value) {
+    return /^[a-zA-Z\s]+$/.test(value);
+  }
 
   // Password strength checks
   const checks = [
@@ -33,6 +38,15 @@ export default function Signup() {
     if (password.length < 8) {
       setError("Password must be at least 8 characters")
       return
+    }
+
+    if(!isValidUsername(username)) {
+      setError("Username must contain only letters and spaces")
+      return;
+    }
+    if(username.trim().length < 2){
+      setError("Username must be at least 2 charachters")
+      return;
     }
 
     setLoading(true)
@@ -99,10 +113,21 @@ export default function Signup() {
               <input
                 required
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => { setUsername(e.target.value)
+                  if(e.target.value && !isValidUsername(e.target.value)) {
+                    setUsernameError("Only letters and spaces allowed")
+                  } else {
+                    setUsernameError("")
+                  }
+                }
+              }
                 placeholder="e.g. abebe_kebede"
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-950 bg-white"
               />
+              {usernameError && (
+               <p className="text-xs text-red-600 mt-1">{usernameError}</p>
+               )}
+
             </div>
 
             <div>
