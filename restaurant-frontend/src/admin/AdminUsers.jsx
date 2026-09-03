@@ -88,8 +88,7 @@ export default function AdminUsers() {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
-    });
-  if (res.ok) fetchUsers();
+    }); if (res.ok) fetchUsers();
 
     else alert("Failed to delete user");
   }
