@@ -12,11 +12,13 @@ router.post('/', authenticate, async (req, res) => {
   const {
     items,
     total_amount,
+    status,
     order_type,
     delivery_address,
     delivery_phone,
     special_instructions,
     payment_method,
+    payment_status,
     bank_id,
   } = req.body;
 
@@ -39,11 +41,13 @@ router.post('/', authenticate, async (req, res) => {
       [
         user.userId,
         total_amount,
+        status,
         order_type || 'dine_in',
         delivery_address || null,
         delivery_phone || null,
         special_instructions || null,
         payment_method || 'tele_birr',
+        payment_status,
         tx_ref,
         bank_id || null,
       ]
