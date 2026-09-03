@@ -89,9 +89,20 @@ export default function AdminUsers() {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (res.ok) setUsers((prev) => prev.filter((u) => u.id !== id));
+  if (res.ok) fetchUsers();
+
     else alert("Failed to delete user");
   }
+
+  async function handleRestore(id) {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${id}/restore`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.ok) fetchUsers();
+  else alert("Failed to restore user");
+}
+
 
   return (
     <DashboardLayout>
@@ -186,13 +197,18 @@ export default function AdminUsers() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50 transition">
+                  <tr key={user.id} className={`transition ${user.is_active === false ? "opacity-60 bg-gray-50" : "hover:bg-gray-50"}`}>
                     <td className="px-6 py-4 font-medium text-gray-800">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-red-950 text-white flex items-center justify-center text-xs font-bold">
+                        <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center text-xs font-bold ${user.is_active === false ? "bg-gray-400" : "bg-red-950"}`}>
                           {user.username?.charAt(0).toUpperCase()}
                         </div>
-                        {user.username}
+                        <div>
+                          {user.username}
+                          {user.is_active === false && (
+                            <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">Inactive</span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-gray-500">{user.email}</td>
@@ -203,20 +219,30 @@ export default function AdminUsers() {
                     </td>
                     <td className="px-6 py-4">
                       <select value={user.role} onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                        className="border border-gray-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-red-950">
+                        disabled={user.is_active === false}
+                        className="border border-gray-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-red-950 disabled:opacity-50">
                         {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                       </select>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button onClick={() => handleEdit(user)}
-                          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-blue-600 transition">
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => handleDelete(user.id)}
-                          className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-700 transition">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                      <div className="flex gap-2 items-center">
+                        {user.is_active !== false && (
+                          <button onClick={() => handleEdit(user)}
+                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-blue-600 transition">
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                        )}
+                        {user.is_active === false ? (
+                          <button onClick={() => handleRestore(user.id)}
+                            className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 transition font-medium">
+                            Restore
+                          </button>
+                        ) : (
+                          <button onClick={() => handleDelete(user.id)}
+                            className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-700 transition">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
