@@ -39,6 +39,21 @@ useEffect(() => {
   async function handleSubmit(e) {
   e.preventDefault();
   setIsSubmitting(true);
+
+  // Validate: if today is selected, time must not be in the past
+  const today = new Date().toISOString().split("T")[0];
+  if (form.date === today) {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const [slotHour, slotMinute] = form.time.split(":").map(Number);
+    const slotMinutes = slotHour * 60 + slotMinute;
+    if (slotMinutes <= currentMinutes) {
+      alert("Please select a future time for today's reservation.");
+      setIsSubmitting(false);
+      return;
+    }
+  }
+
   const token = localStorage.getItem("token");
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/reservations`, {
