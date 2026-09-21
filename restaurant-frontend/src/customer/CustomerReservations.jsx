@@ -163,6 +163,7 @@ useEffect(() => {
                       <p className="font-medium text-red-950">{item.reservation_date} • {item.reservation_time}</p>
                       <span className={`text-xs px-2 py-1 rounded-full capitalize font-medium ${
   item.status === 'approved' ? 'bg-green-100 text-green-700' :
+  item.status === 'assigned' ? 'bg-orange-100 text-orange-700' :
   item.status === 'rejected' ? 'bg-red-100 text-red-700' :
   item.status === 'completed' ? 'bg-gray-100 text-gray-700' :
   'bg-amber-100 text-amber-700'
@@ -172,6 +173,9 @@ useEffect(() => {
 
                     </div>
                     <p className="text-sm text-gray-500 mt-1">{item.guests} guests</p>
+                    {item.table_number && (
+                      <p className="text-sm text-green-700 font-medium mt-1">Table {item.table_number} assigned</p>
+                    )}
                     {item.special_requests ? <p className="text-sm text-gray-500 mt-1">{item.special_requests}</p> : null}
                   </div>
                 ))}
