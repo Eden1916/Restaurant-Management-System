@@ -14,6 +14,8 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const reviewRoutes = require('./routes/reviews');
 const reservationRoutes = require('./routes/reservations');
+const inventoryRoutes = require('./routes/inventory');
+
 
 const app = express();
 
@@ -36,6 +38,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/reservations', reservationRoutes);
+app.use('/api/inventory', inventoryRoutes);
+
 
 // Basic test route
 app.get('/api/test', (req, res) => {
