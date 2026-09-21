@@ -40,8 +40,18 @@ export default function AdminReservations() {
       alert("Please enter a table number");
       return;
     }
-    await updateStatus(item.id, "assigned", tableNumber);
-    setTableInputs((prev) => ({ ...prev, [item.id]: "" }));
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/reservations/${item.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ status: "assigned", table_number: tableNumber }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setTableInputs((prev) => ({ ...prev, [item.id]: "" }));
+      fetchReservations();
+    } else {
+      alert(data.error || "Failed to assign table");
+    }
   }
 
   return (
