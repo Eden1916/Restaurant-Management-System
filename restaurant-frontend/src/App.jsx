@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import MainPage from "./MainPage.jsx";
 import Login from "./Login.jsx";
 import Signup from "./Signup.jsx";
+import ChefInventory from "./chef/ChefInventory.jsx";
+
 
 import CustomerReviews from "./customer/CustomerReviews.jsx";
 import CustomerDashboard from "./customer/CustomerDashboard.jsx";
@@ -16,6 +18,8 @@ import AdminMenu from "./admin/AdminMenu.jsx";
 import AdminReservations from "./admin/AdminReservations.jsx";
 import AdminReports from "./admin/AdminReports.jsx";
 import AdminUsers from "./admin/AdminUsers.jsx";
+import AdminInventory from "./admin/AdminInventory.jsx";
+
 
 // Waiter
 import WaiterDashboard from "./waiter/WaiterDashboard.jsx";
@@ -57,6 +61,8 @@ function App() {
       <Route path="/admin/reservations" element={<ProtectedRoute allowedRoles={["admin"]}><AdminReservations /></ProtectedRoute>} />
       <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={["admin"]}><AdminReports /></ProtectedRoute>} />
       <Route path="/admin/users" element={<ProtectedRoute allowedRoles={["admin"]}><AdminUsers /></ProtectedRoute>} />
+      <Route path="/admin/inventory" element={<ProtectedRoute allowedRoles={["admin"]}><AdminInventory /></ProtectedRoute>} />
+
 
       {/* Waiter */}
       <Route path="/waiter/dashboard" element={<ProtectedRoute allowedRoles={["waiter"]}><WaiterDashboard /></ProtectedRoute>} />
@@ -66,6 +72,8 @@ function App() {
       {/* Chef */}
       <Route path="/chef/dashboard" element={<ProtectedRoute allowedRoles={["chef"]}><ChefDashboard /></ProtectedRoute>} />
       <Route path="/chef/orders" element={<ProtectedRoute allowedRoles={["chef"]}><ChefOrders /></ProtectedRoute>} />
+      <Route path="/chef/inventory" element={<ProtectedRoute allowedRoles={["chef"]}><ChefInventory /></ProtectedRoute>} />
+
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

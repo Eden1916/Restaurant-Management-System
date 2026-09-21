@@ -10,6 +10,7 @@ import {
   ChefHat,
   X,
   Star,
+  AlertTriangle,
 } from "lucide-react";
 import { authLogout } from "../api/auth";
 
@@ -79,6 +80,15 @@ const menuItems = [
       admin: "/admin/users",
     },
   },
+  {
+  name: "Low Stock",
+  icon: AlertTriangle,
+  roles: ["chef", "admin"],
+  paths: {
+    chef: "/chef/inventory",
+    admin: "/admin/inventory",
+  },
+},
 ];
 
 export default function SideBar({ role, onClose }) {
