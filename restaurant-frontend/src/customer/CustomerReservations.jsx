@@ -2,22 +2,23 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../shared/DashboardLayout";
 import { CalendarDays } from "lucide-react";
 
-// Generate time slots in 30-minute intervals with 12-hour format
+// Generate time slots 07:00 AM – 09:00 PM in 30-minute intervals
 const generateTimeSlots = () => {
   const slots = [];
-  for (let hour = 6; hour < 22; hour++) {
+  for (let hour = 7; hour <= 21; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
-      const period = hour >= 12 ? "PM" : "AM";
-      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      const time = `${String(displayHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-      slots.push({ time, period });
+      const period = hour < 12 ? "AM" : "PM";
+      const displayHour = hour > 12 ? hour - 12 : hour;
+      const label = `${String(displayHour).padStart(2, "0")}:${String(minute).padStart(2, "0")} ${period}`;
+      const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+      slots.push({ label, value });
     }
   }
   return slots;
 };
 
 export default function CustomerReservations() {
-  const [form, setForm] = useState({ date: "", time: "", period: "AM", guests: 1, special_requests: "" });
+  const [form, setForm] = useState({ date: "", time: "", guests: 1, special_requests: "" });
   const [submitted, setSubmitted] = useState(false);
   const [reservations, setReservations] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,7 +46,7 @@ useEffect(() => {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         reservation_date: form.date,
-        reservation_time: `${form.time} ${form.period}`,
+        reservation_time: form.time,
         guests: Number(form.guests),
         special_requests: form.special_requests,
       }),
@@ -53,7 +54,7 @@ useEffect(() => {
     const data = await res.json();
     if (data.success) {
       setSubmitted(true);
-      setForm({ date: "", time: "", period: "", guests: "", special_requests: "" });
+      setForm({ date: "", time: "", guests: "", special_requests: "" });
       loadReservations();
     } else {
       alert(data.error || "Failed to book reservation");
@@ -90,6 +91,7 @@ useEffect(() => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                 <input
                   type="date"
+                  min={new Date().toISOString().split("T")[0]}
                   required
                   value={form.date}
                   onChange={(e) => setForm({ ...form, date: e.target.value })}
@@ -97,29 +99,19 @@ useEffect(() => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
-                <div className="flex gap-2">
-                  <select
-                    required
-                    value={form.time}
-                    onChange={(e) => setForm({ ...form, time: e.target.value })}
-                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950">
-                    <option value="">Select a time</option>
-                    {timeSlots.map((slot) => (
-                      <option key={`${slot.time}-${slot.period}`} value={slot.time}>
-                        {slot.time}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    required
-                    value={form.period}
-                    onChange={(e) => setForm({ ...form, period: e.target.value })}
-                    className="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950">
-                    <option value="AM">AM</option>
-                    <option value="PM">PM</option>
-                  </select>
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Time (07:00 AM – 09:00 PM)</label>
+                <select
+                  required
+                  value={form.time}
+                  onChange={(e) => setForm({ ...form, time: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950">
+                  <option value="">Select a time</option>
+                  {timeSlots.map((slot) => (
+                    <option key={slot.value} value={slot.value}>
+                      {slot.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Number of Guests</label>
