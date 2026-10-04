@@ -22,7 +22,7 @@ export default function Signup() {
 
   // Password strength checks
   const checks = [
-    { label: "At least 8 characters", valid: password.length >= 8 },
+    { label: "At least 6 characters", valid: password.length >= 6 },
     { label: "Contains a number", valid: /\d/.test(password) },
     { label: "Passwords match", valid: password === confirmPassword && confirmPassword !== "" },
   ]
@@ -35,8 +35,8 @@ export default function Signup() {
       setError("Passwords do not match")
       return
     }
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters")
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters")
       return
     }
 
