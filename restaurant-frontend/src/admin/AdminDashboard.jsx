@@ -5,6 +5,7 @@ import { Users, ShoppingBag, UtensilsCrossed, TrendingUp } from "lucide-react";
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ users: 0, orders: 0, menuItems: 0, revenue: 0 });
   const [recentOrders, setRecentOrders] = useState([]);
+  const [lowStocks, setLowStocks] = useState([]);
   const [pendingReservations, setPendingReservations] = useState([]);
   const token = localStorage.getItem("token");
 
@@ -14,43 +15,50 @@ export default function AdminDashboard() {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
-      .then((d) => {
-        if (d.success) setStats((s) => ({ ...s, users: d.users.length }));
-      })
+      .then((d) => { if (d.success) setStats((s) => ({ ...s, users: d.users.length })); })
       .catch(() => {});
 
     // Fetch menu count
     fetch(`${import.meta.env.VITE_API_URL}/menu`)
       .then((r) => r.json())
-      .then((d) => {
-        if (Array.isArray(d)) setStats((s) => ({ ...s, menuItems: d.length }));
-      })
+      .then((d) => { if (Array.isArray(d)) setStats((s) => ({ ...s, menuItems: d.length })); })
       .catch(() => {});
 
-      //Fetch orders, recent orders & revenues count
-      fetch(`${import.meta.env.VITE_API_URL}/orders`, {
-        headers: {Authorization: `Bearer ${token}`},
-      })
+    // Fetch orders, recent orders & revenue
+    fetch(`${import.meta.env.VITE_API_URL}/orders`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((r) => r.json())
       .then((d) => {
-        if(d.success) {
-          const totalRevenue = d.orders.filter(order => order.payment_status === "completed").reduce((acc, order) => acc + (parseFloat(order.total_amount) || parseFloat(order.total_price) || 0), 0);
+        if (d.success) {
+          const totalRevenue = d.orders
+            .filter((o) => o.payment_status === "completed")
+            .reduce((acc, o) => acc + (parseFloat(o.total_amount) || 0), 0);
           setStats((s) => ({ ...s, revenue: totalRevenue.toFixed(2), orders: d.orders.length }));
-          setRecentOrders(d.orders.slice(0, 3)); // take first 3 (already sorted by newest)
+          setRecentOrders(d.orders.slice(0, 3));
         }
       })
       .catch(() => {});
 
-      //Fetch prnding reservations
-      fetch(`${import.meta.env.VITE_API_URL}/reservations`, {
-        headers: {Authorization: `Bearer ${token}`},
-      })
+    // Fetch low stock reports
+    fetch(`${import.meta.env.VITE_API_URL}/inventory`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setLowStocks(d.reports.slice(0, 3)); })
+      .catch(() => {});
+
+    // Fetch pending reservations
+    fetch(`${import.meta.env.VITE_API_URL}/reservations`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((r) => r.json())
       .then((d) => {
-        if(d.success) {
-          setPendingReservations(d.reservations.filter(reservation => reservation.status === "pending"));
+        if (d.success) {
+          setPendingReservations(d.reservations.filter((r) => r.status === "pending"));
         }
       })
+      .catch(() => {});
   }, []);
 
   const cards = [
@@ -86,75 +94,88 @@ export default function AdminDashboard() {
 
         {/* Quick links */}
         <div className="grid md:grid-cols-3 gap-4">
+
+          {/* Recent Orders */}
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="font-semibold text-red-950 mb-2">Recent Orders</h2>
-{recentOrders.length === 0 ? (
-    <p className="text-gray-400 text-sm">No recent orders</p>
-  ) : (
-    <div className="space-y-3">
-      {recentOrders.map((order) => (
-        <div key={order.id} className="flex items-center justify-between text-sm border-b border-gray-50 pb-2 last:border-0">
-          <div>
-            <p className="font-medium text-gray-800">{order.username}</p>
-            <p className="text-xs text-gray-400">{new Date(order.created_at).toLocaleDateString()}</p>
-          </div>
-          <div className="text-right">
-            <p className="font-semibold text-red-950">{order.total_amount} ETB</p>
-            <span className={`text-xs px-1.5 py-0.5 rounded-full capitalize ${
-              order.status === 'completed' ? 'bg-green-100 text-green-700' :
-              order.status === 'payment_verified' ? 'bg-blue-100 text-blue-700' :
-              order.status === 'preparing' ? 'bg-orange-100 text-orange-700' :
-              'bg-yellow-100 text-yellow-700'
-            }`}>{order.status?.replace('_', ' ')}</span>
-          </div>
-        </div>
-      ))}
-    </div>
-  )}          </div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="font-semibold text-red-950 mb-2">Pending Reservaions</h2>
-            {pendingReservations.length === 0 ? (
-            <p className="text-gray-400 text-sm">No pending reservations</p>
-            ):(
-            <div className="bg-white rounded-xl shadow-sm p-6 space-y-3">
-            {pendingReservations.map((item) => (
-              <div key={item.id} className="border border-gray-100 rounded-lg p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="font-semibold text-red-950">{item.username || "Customer"}</p>
-                  <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 capitalize">
-                    {item.status}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600 mt-1">{item.reservation_date} • {item.reservation_time}</p>
-                <p className="text-sm text-gray-500 mt-1">{item.guests} guests</p>
-                {item.special_requests ? <p className="text-sm text-gray-500 mt-1">{item.special_requests}</p> : null}
-                {item.status === "pending" && (
-  <div className="flex gap-2 mt-3">
-    <button onClick={() => updateStatus(item.id, "approved")}
-      className="bg-green-600 text-white px-3 py-1 rounded-lg text-xs hover:bg-green-700">
-      Approve
-    </button>
-    <button onClick={() => updateStatus(item.id, "rejected")}
-      className="bg-red-600 text-white px-3 py-1 rounded-lg text-xs hover:bg-red-700">
-      Reject
-    </button>
-  </div>
-)}
-{item.status === "approved" && (
-  <button onClick={() => updateStatus(item.id, "completed")}
-    className="mt-3 bg-gray-200 text-gray-700 px-3 py-1 rounded-lg text-xs hover:bg-gray-300">
-    Mark Completed
-  </button>
-)}
+            <h2 className="font-semibold text-red-950 mb-3">Recent Orders</h2>
+            {recentOrders.length === 0 ? (
+              <p className="text-gray-400 text-sm">No recent orders</p>
+            ) : (
+              <div className="space-y-3">
+                {recentOrders.map((order) => (
+                  <div key={order.id} className="flex items-center justify-between text-sm border-b border-gray-50 pb-2 last:border-0">
+                    <div>
+                      <p className="font-medium text-gray-800">{order.username}</p>
+                      <p className="text-xs text-gray-400">{new Date(order.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-red-950">{order.total_amount} ETB</p>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full capitalize ${
+                        order.status === 'completed' ? 'bg-green-100 text-green-700' :
+                        order.status === 'payment_verified' ? 'bg-blue-100 text-blue-700' :
+                        order.status === 'preparing' ? 'bg-orange-100 text-orange-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {order.status?.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
             )}
           </div>
+
+          {/* Pending Reservations */}
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="font-semibold text-red-950 mb-2">Low Stock Items</h2>
-            <p className="text-gray-400 text-sm">All items available</p>
+            <h2 className="font-semibold text-red-950 mb-3">Pending Reservations</h2>
+            {pendingReservations.length === 0 ? (
+              <p className="text-gray-400 text-sm">No pending reservations</p>
+            ) : (
+              <div className="space-y-3">
+                {pendingReservations.map((item) => (
+                  <div key={item.id} className="border border-gray-100 rounded-lg p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-semibold text-red-950 text-sm">{item.username || "Customer"}</p>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 capitalize">
+                        {item.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(item.reservation_date).toLocaleDateString()} • {item.reservation_time}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">{item.guests} guests</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+
+          {/* Low Stock Items */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="font-semibold text-red-950 mb-3">Low Stock Items</h2>
+            {lowStocks.length === 0 ? (
+              <p className="text-gray-400 text-sm">All items available</p>
+            ) : (
+              <div className="space-y-3">
+                {lowStocks.map((stock) => (
+                  <div key={stock.id} className="flex items-center justify-between text-sm border-b border-gray-50 pb-2 last:border-0">
+                    <div>
+                      <p className="font-medium text-gray-800">{stock.item_name}</p>
+                      <p className="text-xs text-gray-400">
+                        {stock.current_quantity} {stock.unit || ""} — {stock.chef_name}
+                      </p>
+                    </div>
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full capitalize ${
+                      stock.status === "pending" ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"
+                    }`}>
+                      {stock.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
     </DashboardLayout>
