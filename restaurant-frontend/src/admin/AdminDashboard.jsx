@@ -97,7 +97,8 @@ export default function AdminDashboard() {
 
           {/* Recent Orders */}
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="font-semibold text-red-950 mb-3">Recent Orders</h2>
+            <h2 className="font-semibold text-red-950 mb-1">Recent Orders</h2>
+            <p className="text-xs text-gray-400 mb-3">Showing latest 3 orders</p>
             {recentOrders.length === 0 ? (
               <p className="text-gray-400 text-sm">No recent orders</p>
             ) : (
@@ -126,13 +127,14 @@ export default function AdminDashboard() {
           </div>
 
           {/* Pending Reservations */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="font-semibold text-red-950 mb-3">Pending Reservations</h2>
+          <div className="bg-white rounded-xl shadow-sm p-6 ">
+            <h2 className="font-semibold text-red-950 mb-1">Pending Reservations</h2>
+            <p className="text-xs text-gray-400 mb-3">Showing latest 3 pending</p>
             {pendingReservations.length === 0 ? (
               <p className="text-gray-400 text-sm">No pending reservations</p>
             ) : (
               <div className="space-y-3">
-                {pendingReservations.map((item) => (
+                {pendingReservations.slice(0, 3).map((item) => (
                   <div key={item.id} className="border border-gray-100 rounded-lg p-3">
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-semibold text-red-950 text-sm">{item.username || "Customer"}</p>
@@ -152,7 +154,8 @@ export default function AdminDashboard() {
 
           {/* Low Stock Items */}
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="font-semibold text-red-950 mb-3">Low Stock Items</h2>
+            <h2 className="font-semibold text-red-950 mb-1">Low Stock Items</h2>
+            <p className="text-xs text-gray-400 mb-3">Showing latest 3 reports</p>
             {lowStocks.length === 0 ? (
               <p className="text-gray-400 text-sm">All items available</p>
             ) : (

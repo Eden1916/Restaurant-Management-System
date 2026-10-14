@@ -90,7 +90,7 @@ useEffect(() => {
           <p className="text-gray-500 mt-1">Book a table at Liyu Restaurant</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 items-start">
           {/* Booking form */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-lg font-semibold text-red-950 mb-4 flex items-center gap-2">
@@ -163,7 +163,7 @@ useEffect(() => {
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-lg font-semibold text-red-950 mb-4">My Reservations</h2>
             {reservations.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">
                 {reservations.map((item) => (
                   <div key={item.id} className="border border-gray-100 rounded-lg p-3">
                     <div className="flex items-center justify-between gap-2">

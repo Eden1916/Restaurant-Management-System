@@ -57,7 +57,7 @@ export default function ChefInventory() {
           <p className="text-gray-500 mt-1">Report items that are running low in the kitchen</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 items-start">
           {/* Report form */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-lg font-semibold text-red-950 mb-4 flex items-center gap-2">
@@ -138,7 +138,7 @@ export default function ChefInventory() {
                 <p className="text-sm">No reports submitted yet</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">
                 {myReports.map((r) => (
                   <div key={r.id} className="border border-gray-100 rounded-lg p-3">
                     <div className="flex items-center justify-between">
