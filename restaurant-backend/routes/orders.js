@@ -177,7 +177,7 @@ router.get('/', authenticate, async (req, res) => {
        JOIN order_items ON orders.id = order_items.order_id
        JOIN menu_items ON order_items.menu_item_id = menu_items.id
        GROUP BY orders.id, users.username
-       ORDER BY orders.created_at DESC`
+       ORDER BY orders.updated_at DESC`
     );
     res.json({ success: true, orders: result.rows });
   } catch (err) {
@@ -198,7 +198,7 @@ router.put('/:id/status', authenticate, async (req, res) => {
 
   try {
     const result = await pool.query(
-      `UPDATE orders SET status = $1 WHERE id = $2 RETURNING *`,
+      `UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
       [status, id]
     );
     if (result.rows.length === 0) {
