@@ -4,6 +4,7 @@ import Login from "./Login.jsx";
 import Signup from "./Signup.jsx";
 import ForgotPassword from "./ForgotPassword.jsx";
 import ResetPassword from "./ResetPassword.jsx";
+import GoogleAuthSuccess from "./GoogleAuthSuccess.jsx";
 import ChefInventory from "./chef/ChefInventory.jsx";
 
 
@@ -50,6 +51,7 @@ function App() {
       <Route path="/Signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
 
       {/* Customer */}
       <Route path="/customer/dashboard" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerDashboard /></ProtectedRoute>} />
