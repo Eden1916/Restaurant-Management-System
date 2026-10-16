@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChefHat, Eye, EyeOff, CheckCircle } from "lucide-react";
-import loginImage from "./assets/login.jpg";
+import loginImage from "./assets/restaurant.jpg";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -72,7 +72,7 @@ export default function ResetPassword() {
       {/* Left — image */}
       <div className="hidden lg:flex lg:w-1/2 relative">
         <img src={loginImage} alt="Liyu Restaurant" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-red-950/60 flex flex-col items-center justify-center text-white p-12">
+        <div className="absolute inset-0 bg-red-950/20 flex flex-col items-center justify-center text-white p-12">
           <ChefHat className="w-16 h-16 mb-4" />
           <h1 className="text-4xl font-bold mb-3">Liyu Restaurant</h1>
           <p className="text-red-100 text-lg text-center max-w-sm">
