@@ -140,6 +140,19 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// GET /api/auth/stats — public stats for the home page
+router.get('/stats', async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT COUNT(*) as count FROM users WHERE role = 'customer'"
+    );
+    res.json({ customerCount: parseInt(result.rows[0].count) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch stats' });
+  }
+});
+
 // POST /api/auth/forgot-password
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
