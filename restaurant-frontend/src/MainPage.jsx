@@ -36,16 +36,36 @@ export default function MainPage() {
   const [dbMenuItems, setDbMenuItems] = useState([]);
   const [showAll, setShowAll] = useState(false);
   const [reviews, setReviews] = useState([]);
+  const [customerCount, setCustomerCount] = useState(0);
+  const [menuCount, setMenuCount] = useState(0);
+
+  // Returns "10+", "20+", "100+", etc. — rounds down to nearest 10
+  function approxCount(n) {
+    if (n < 10) return `${n}+`;
+    const rounded = Math.floor(n / 10) * 10;
+    return `${rounded}+`;
+  }
 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/menu`)
       .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d)) setDbMenuItems(d); })
+      .then((d) => {
+        if (Array.isArray(d)) {
+          setDbMenuItems(d);
+          setMenuCount(d.length);
+        }
+      })
       .catch(() => {});
 
     fetch(`${import.meta.env.VITE_API_URL}/reviews`)
       .then((r) => r.json())
       .then((d) => { if (d.success) setReviews(d.reviews); })
+      .catch(() => {});
+
+    // Fetch customer count (users with role=customer)
+    fetch(`${import.meta.env.VITE_API_URL}/auth/stats`)
+      .then((r) => r.json())
+      .then((d) => { if (d.customerCount) setCustomerCount(d.customerCount); })
       .catch(() => {});
   }, []);
 
@@ -269,8 +289,8 @@ export default function MainPage() {
               <div className="flex flex-wrap gap-4 mt-4">
                 {[
                   { label: "Years of Experience", value: "10+" },
-                  { label: "Menu Items", value: "50+" },
-                  { label: "Happy Customers", value: "10K+" },
+                  { label: "Menu Items", value: approxCount(menuCount || 0) },
+                  { label: "Happy Customers", value: customerCount > 0 ? approxCount(customerCount) : "—" },
                 ].map((stat) => (
                   <div key={stat.label} className="bg-red-50 rounded-xl p-4 text-center min-w-24">
                     <p className="text-2xl font-bold text-red-950">{stat.value}</p>
