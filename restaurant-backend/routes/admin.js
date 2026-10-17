@@ -74,7 +74,7 @@ router.put('/users/:userId/role', authenticate, authorize('admin'), async (req, 
     if (!allowedRoles.includes(newRole)) {
       return res.status(400).json({ success: false, message: 'Invalid role' });
     }
-
+        // Prevent admin from demoting themselve
     if (parseInt(userId) === req.user.userId && newRole !== 'admin') {
       return res.status(403).json({ success: false, message: 'Cannot demote yourself' });
     }
@@ -151,54 +151,5 @@ router.delete('/users/:userId', authenticate, authorize('admin'), async (req, re
   }
 });
 
-// PUT restore deactivated user
-router.put('/users/:userId/restore', authenticate, authorize('admin'), async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const result = await pool.query(
-      'UPDATE users SET is_active = true WHERE id = $1 RETURNING id, username, email, role',
-      [userId]
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.json({ success: true, user: result.rows[0] });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to restore user' });
-  }
-});
-
-
-// PUT update user role (admin only)
-router.put('/users/:userId/role', authenticate, authorize('admin'), async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { newRole } = req.body;
-
-    const allowedRoles = ['admin', 'chef', 'waiter', 'customer'];
-    if (!allowedRoles.includes(newRole)) {
-      return res.status(400).json({ success: false, message: 'Invalid role' });
-    }
-
-    // Prevent admin from demoting themselves
-    if (parseInt(userId) === req.user.userId && newRole !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Cannot demote yourself' });
-    }
-
-    const result = await pool.query(
-      'UPDATE users SET role = $1 WHERE id = $2 RETURNING id, username, email, role',
-      [newRole, userId]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-
-    res.json({ success: true, user: result.rows[0] });
-  } catch (err) {
-    console.error('Update role error:', err);
-    res.status(500).json({ success: false, message: 'Failed to update role' });
-  }
-});
 
 module.exports = router;
