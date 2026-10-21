@@ -3,7 +3,6 @@ const cors = require('cors');
 const session = require('express-session');
 const passport = require('passport');
 require('dotenv').config();
-console.log('Chapa key:', process.env.CHAPA_SECRET_KEY);
 
 
 // Import database connection
@@ -68,7 +67,7 @@ app.get('/api/test-db', async (req, res) => {
       time: result.rows[0].current_time
     });
   } catch (err) {
-    console.error(err);
+    console.error(`Database connection error:`, err.message);
     res.status(500).json({ error: 'Database connection failed' });
   }
 });
