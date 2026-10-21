@@ -1,13 +1,5 @@
 import { useEffect, useState } from "react";
 import landingImage from "./assets/landingImage.jpg";
-import Burger from "./assets/burger.jpg"
-import Burger1 from "./assets/burger2.jpg"
-import Burger2 from "./assets/burger3.jpg"
-import Burger3 from "./assets/burger4.jpg"
-import pizza1 from "./assets/pizza1.jpg"
-import pizza2 from "./assets/pizza2.jpg"
-import pizza3 from "./assets/pizza3.jpg"
-import pizza4 from "./assets/pizza4.jpg"
 import { useNavigate } from "react-router-dom";
 import { MapPin, Phone, Mail, Clock, Star, ChefHat, Users, Award } from "lucide-react";
 import StarRating from "./components/StarRating";
@@ -20,16 +12,6 @@ function getImageUrl(image_url) {
   return image_url;
 }
 
-const localMenuItems = [
-  { name: "Burger", price: 600, image: Burger },
-  { name: "Burger Special", price: 600, image: Burger1 },
-  { name: "Double Burger", price: 700, image: Burger2 },
-  { name: "Cheese Burger", price: 650, image: Burger3 },
-  { name: "Margherita Pizza", price: 800, image: pizza1 },
-  { name: "Pepperoni Pizza", price: 850, image: pizza2 },
-  { name: "BBQ Pizza", price: 900, image: pizza3 },
-  { name: "Veggie Pizza", price: 780, image: pizza4 },
-];
 
 export default function MainPage() {
   const navigate = useNavigate();
@@ -69,7 +51,7 @@ export default function MainPage() {
       .catch(() => {});
   }, []);
 
-  const displayItems = dbMenuItems.length > 0 ? dbMenuItems : localMenuItems;
+  const displayItems = dbMenuItems;
   const visibleItems = showAll ? displayItems : displayItems.slice(0, 8);
 
   function scrollTo(id) {
@@ -163,11 +145,20 @@ export default function MainPage() {
                 className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition group"
               >
                 <div className="relative overflow-hidden h-48">
-                  <img
-                    src={item.image || getImageUrl(item.image_url)}
-                    alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                  />
+                  {(item.image_url || item.image) ? (
+  <img
+    src={getImageUrl(item.image_url || item.image)}
+    alt={item.name}
+    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+    onError={(e) => {
+      e.currentTarget.style.display = "none";
+    }}
+  />
+) : (
+  <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
+    No image available
+  </div>
+)}
                 </div>
                 <div className="p-4">
                   <h3 className="font-semibold text-gray-800 text-lg">{item.name}</h3>
