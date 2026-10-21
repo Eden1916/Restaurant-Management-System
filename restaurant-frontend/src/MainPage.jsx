@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { MapPin, Phone, Mail, Clock, Star, ChefHat, Users, Award } from "lucide-react";
 import StarRating from "./components/StarRating";
 
-const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
 
 function getImageUrl(image_url) {
   if (!image_url) return null;
