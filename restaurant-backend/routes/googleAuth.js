@@ -5,6 +5,11 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
 
+// ---- Safe startup logs (no secrets are printed) ----
+console.log('Google callbackURL:', `${process.env.BACKEND_URL}/api/auth/google/callback`);
+console.log('Client ID set:', !!process.env.GOOGLE_CLIENT_ID, '| ends with:', (process.env.GOOGLE_CLIENT_ID || '').slice(-30));
+console.log('Client secret set:', !!process.env.GOOGLE_CLIENT_SECRET, '| length:', (process.env.GOOGLE_CLIENT_SECRET || '').length);
+
 // Configure Google Strategy
 passport.use(new GoogleStrategy(
   {
@@ -15,7 +20,7 @@ passport.use(new GoogleStrategy(
   async (accessToken, refreshToken, profile, done) => {
     try {
       const email = profile.emails[0].value;
-      const username = profile.displayName;
+      const username = profile.displayName || '';
 
       // Check whether a user with this email already exists
       let result = await pool.query(
@@ -53,28 +58,54 @@ passport.use(new GoogleStrategy(
       }
 
       return done(null, result.rows[0]);
-  } catch (err) {
-    done(err, null);
+    } catch (err) {
+      return done(err, null);
+    }
   }
-  }));
+));
 
 // GET /api/auth/google — redirect to Google
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+router.get(
+  '/google',
+  passport.authenticate('google', { scope: ['profile', 'email'], session: false })
+);
 
 // GET /api/auth/google/callback — Google redirects here
-router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: `${process.env.FRONTEND_URL}/Login?error=google_failed`, session: false}),
+router.get(
+  '/google/callback',
+
+  // 1) Log every time this route is hit (to detect double requests)
+  (req, res, next) => {
+    console.log('Google callback hit at', new Date().toISOString());
+    next();
+  },
+
+  // 2) Run Passport, and log the real error if something fails
+  (req, res, next) => {
+    passport.authenticate('google', { session: false }, (err, user) => {
+      if (err) {
+        console.error('Google OAuth error:', err.name, '|', err.code, '|', err.message);
+        return res.redirect(`${process.env.FRONTEND_URL}/Login?error=google_failed`);
+      }
+      if (!user) {
+        console.error('Google OAuth: no user returned');
+        return res.redirect(`${process.env.FRONTEND_URL}/Login?error=google_failed`);
+      }
+      req.user = user;
+      next();
+    })(req, res, next);
+  },
+
+  // 3) Your original code: issue JWT and redirect to the frontend
   (req, res) => {
     const user = req.user;
 
-    // Issue a JWT just like normal login
     const token = jwt.sign(
       { userId: user.id, username: user.username, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
 
-    // Redirect to frontend with token and user info in query params
     const params = new URLSearchParams({
       token,
       id: user.id,
