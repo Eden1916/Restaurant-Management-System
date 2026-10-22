@@ -59,11 +59,11 @@ passport.use(new GoogleStrategy(
   }));
 
 // GET /api/auth/google — redirect to Google
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
 
 // GET /api/auth/google/callback — Google redirects here
 router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: `${process.env.FRONTEND_URL}/Login?error=google_failed` }),
+  passport.authenticate('google', { failureRedirect: `${process.env.FRONTEND_URL}/Login?error=google_failed`, session: false}),
   (req, res) => {
     const user = req.user;
 
