@@ -17,35 +17,46 @@ passport.use(new GoogleStrategy(
       const email = profile.emails[0].value;
       const username = profile.displayName;
 
-      // Check if user already exists
-      let result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+      // Check whether a user with this email already exists
+      let result = await pool.query(
+        'SELECT id, username, email, role FROM users WHERE email = $1',
+        [email]
+      );
 
       if (result.rows.length === 0) {
-        // Create new user (Google users get a random unhashable password)
+        // Make a unique username if the Google display name is taken
+        const baseUsername = username.trim() || 'google_user';
+        let uniqueUsername = baseUsername;
+        let suffix = 1;
+
+        while (true) {
+          const existingUsername = await pool.query(
+            'SELECT id FROM users WHERE username = $1',
+            [uniqueUsername]
+          );
+
+          if (existingUsername.rows.length === 0) {
+            break;
+          }
+
+          uniqueUsername = `${baseUsername}${suffix}`;
+          suffix++;
+        }
+
+        // Create the new Google user
         result = await pool.query(
           `INSERT INTO users (username, email, password_hash, role, is_active)
            VALUES ($1, $2, $3, 'customer', true)
            RETURNING id, username, email, role`,
-          [username, email, `google_oauth_${profile.id}`]
+          [uniqueUsername, email, `google_oauth_${profile.id}`]
         );
       }
 
       return done(null, result.rows[0]);
-    } catch (err) {
-      return done(err, null);
-    }
-  }
-));
-
-passport.serializeUser((user, done) => done(null, user.id));
-passport.deserializeUser(async (id, done) => {
-  try {
-    const result = await pool.query('SELECT id, username, email, role FROM users WHERE id = $1', [id]);
-    done(null, result.rows[0]);
   } catch (err) {
     done(err, null);
   }
-});
+  }));
 
 // GET /api/auth/google — redirect to Google
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
