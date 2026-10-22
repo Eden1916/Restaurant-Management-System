@@ -23,7 +23,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "https://restaurant-management-system-kpwc0hskf-eden-sahlie-s-projects.vercel.app"],
+  origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "https://restaurant-management-system-kpwc0hskf-eden-sahlie-s-projects.vercel.app", "https://restaurant-management-system-d9cleqo9p-eden-sahlie-s-projects.vercel.app"],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
