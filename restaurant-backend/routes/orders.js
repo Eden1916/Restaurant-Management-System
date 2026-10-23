@@ -19,7 +19,6 @@ router.post('/', authenticate, async (req, res) => {
     special_instructions,
     payment_method,
     payment_status,
-    bank_id,
   } = req.body;
 
   if (!items || items.length === 0) {
@@ -35,8 +34,8 @@ router.post('/', authenticate, async (req, res) => {
       `INSERT INTO orders (
         user_id, total_amount, status, order_type,
         delivery_address, delivery_phone, special_instructions,
-        payment_method, payment_status, tx_ref, bank_id
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+        payment_method, payment_status, tx_ref
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
       RETURNING *`,
       [
         user.userId,
@@ -49,7 +48,6 @@ router.post('/', authenticate, async (req, res) => {
         payment_method || 'tele_birr',
         payment_status,
         tx_ref,
-        bank_id || null,
       ]
     );
     const order = orderResult.rows[0];
