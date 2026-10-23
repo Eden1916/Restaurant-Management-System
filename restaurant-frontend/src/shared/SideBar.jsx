@@ -11,6 +11,7 @@ import {
   X,
   Star,
   AlertTriangle,
+  MessageSquare,
 } from "lucide-react";
 import { authLogout } from "../api/auth";
 
@@ -79,6 +80,14 @@ const menuItems = [
     paths: {
       admin: "/admin/users",
     },
+  },
+  {
+  name: "Messages",
+  icon: MessageSquare,
+  roles: ["admin"],
+  paths: {
+    admin: "/admin/messages",
+  },
   },
   {
   name: "Low Stock",

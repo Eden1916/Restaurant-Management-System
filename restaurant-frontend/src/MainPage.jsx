@@ -20,6 +20,8 @@ export default function MainPage() {
   const [reviews, setReviews] = useState([]);
   const [customerCount, setCustomerCount] = useState(0);
   const [menuCount, setMenuCount] = useState(0);
+  const [contactStatus, setContactStatus] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
   // Returns "10+", "20+", "100+", etc. — rounds down to nearest 10
   function approxCount(n) {
@@ -72,6 +74,55 @@ export default function MainPage() {
     if (!token) { localStorage.setItem("intendedPage", "/customer/menu"); navigate("/Login"); return; }
     navigate("/customer/menu");
   }
+
+  const handleContactSubmit = async (e) => {
+  e.preventDefault();
+
+  const form = e.currentTarget;
+  const formData = new FormData(form);
+
+  const firstName = formData.get('firstName').trim();
+  const lastName = formData.get('lastName').trim();
+
+  const contactData = {
+    name: `${firstName} ${lastName}`,
+    email: formData.get('email').trim(),
+    subject: formData.get('subject').trim(),
+    message: formData.get('message').trim(),
+  };
+
+  setIsSending(true);
+  setContactStatus('');
+
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(contactData),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Failed to send message.');
+    }
+
+    setContactStatus('Your message was sent successfully!');
+    form.reset();
+  } catch (error) {
+    console.error('Contact form error:', error);
+    setContactStatus(
+      error.message || 'Unable to send your message. Please try again.'
+    );
+  } finally {
+    setIsSending(false);
+  }
+};
 
   return (
     <div className="min-h-screen font-sans">
@@ -355,40 +406,46 @@ export default function MainPage() {
             <div className="bg-white rounded-2xl shadow-sm p-8">
               <h3 className="text-xl font-bold text-red-950 mb-6">Send a Message</h3>
               <form
-                onSubmit={(e) => { e.preventDefault(); alert("Message sent! We'll get back to you soon."); e.target.reset(); }}
+                onSubmit={handleContactSubmit}
                 className="space-y-4"
               >
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                    <input required placeholder="Abebe"
+                    <input name="firstName" required placeholder="Abebe"
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                    <input required placeholder="Kebede"
+                    <input name="lastName" required placeholder="Kebede"
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input type="email" required placeholder="abebe@email.com"
+                  <input name="email" type="email" required placeholder="abebe@email.com"
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                  <input required placeholder="Reservation inquiry"
+                  <input name="subject" required placeholder="Reservation inquiry"
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                  <textarea rows={4} required placeholder="Your message..."
+                  <textarea name="message" rows={4} required placeholder="Your message..."
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-950 resize-none" />
                 </div>
                 <button type="submit"
+                disabled={isSending}
                   className="w-full bg-red-950 text-white py-3 rounded-xl font-semibold hover:bg-red-800 transition">
-                  Send Message
+                  {isSending ? 'Sending...' : 'Send Message'}
                 </button>
+                {contactStatus && (
+                  <p role="status" aria-live="polite" className="text-sm">
+                     {contactStatus}
+                  </p>
+                 )}
               </form>
             </div>
           </div>

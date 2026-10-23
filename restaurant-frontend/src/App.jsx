@@ -21,6 +21,7 @@ import AdminMenu from "./admin/AdminMenu.jsx";
 import AdminReservations from "./admin/AdminReservations.jsx";
 import AdminReports from "./admin/AdminReports.jsx";
 import AdminUsers from "./admin/AdminUsers.jsx";
+import AdminMessages from "./admin/AdminMessages.jsx";
 import AdminInventory from "./admin/AdminInventory.jsx";
 
 
@@ -66,7 +67,8 @@ function App() {
       <Route path="/admin/menu" element={<ProtectedRoute allowedRoles={["admin"]}><AdminMenu /></ProtectedRoute>} />
       <Route path="/admin/reservations" element={<ProtectedRoute allowedRoles={["admin"]}><AdminReservations /></ProtectedRoute>} />
       <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={["admin"]}><AdminReports /></ProtectedRoute>} />
-      <Route path="/admin/users" element={<ProtectedRoute allowedRoles={["admin"]}><AdminUsers /></ProtectedRoute>} />
+      <Route path="/admin/users" element={<ProtectedRoute allowedRoles={["admin"]}><AdminUsers /></ProtectedRoute>} />      <Route path="/admin/users" element={<ProtectedRoute allowedRoles={["admin"]}><AdminUsers /></ProtectedRoute>} />
+      <Route path="/admin/messages" element={<ProtectedRoute allowedRoles={["admin"]}><AdminMessages /></ProtectedRoute>} />
       <Route path="/admin/inventory" element={<ProtectedRoute allowedRoles={["admin"]}><AdminInventory /></ProtectedRoute>} />
 
 
