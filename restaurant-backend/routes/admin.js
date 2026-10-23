@@ -152,4 +152,75 @@ router.delete('/users/:userId', authenticate, authorize('admin'), async (req, re
 });
 
 
+ // GET all customer messages (admin only)
+router.get('/messages', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, email, subject, message, status, created_at
+       FROM contact_messages
+       ORDER BY created_at DESC`
+    );
+
+    res.json({ success: true, messages: result.rows });
+  } catch (err) {
+    console.error('Get messages error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch messages'
+    });
+  }
+});
+
+
+ // PUT update a customer message's status (admin only)
+router.put(
+  '/messages/:messageId/status',
+  authenticate,
+  authorize('admin'),
+  async (req, res) => {
+    try {
+      const { messageId } = req.params;
+      const { status } = req.body;
+
+      const allowedStatuses = ['unread', 'read', 'resolved'];
+
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid message status',
+        });
+      }
+
+      const result = await pool.query(
+        `UPDATE contact_messages
+         SET status = $1
+         WHERE id = $2
+         RETURNING id, status`,
+        [status, messageId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Message not found',
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Message status updated',
+        contactMessage: result.rows[0],
+      });
+    } catch (err) {
+      console.error('Update message status error:', err);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update message status',
+      });
+    }
+  }
+);
+
+
+
 module.exports = router;

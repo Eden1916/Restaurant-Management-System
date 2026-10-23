@@ -17,6 +17,7 @@ const adminRoutes = require('./routes/admin');
 const reviewRoutes = require('./routes/reviews');
 const reservationRoutes = require('./routes/reservations');
 const inventoryRoutes = require('./routes/inventory');
+const messageRoutes = require('./routes/messages');
 
 
 const app = express();
@@ -51,6 +52,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/messages', messageRoutes);
 
 
 // Basic test route
