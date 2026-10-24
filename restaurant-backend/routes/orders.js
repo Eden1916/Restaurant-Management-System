@@ -99,37 +99,61 @@ router.post('/', authenticate, async (req, res) => {
 router.get('/verify/:tx_ref', async (req, res) => {
   const { tx_ref } = req.params;
 
-  try {
-    const verifyRes = await axios.get(`${CHAPA_VERIFY_URL}/${tx_ref}`, {
+    const verifyRes = await axios.get(`${CHAPA_VERIFY_URL}/${encodeURIComponent(tx_ref)}`, {
       headers: { Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}` },
     });
 
     const chapaData = verifyRes.data.data;
-    const status = chapaData.status; // 'success' or 'failed'
+    // Find the order associated with this transaction.
+    const orderResult = await pool.query(
+     `SELECT id, total_amount, tx_ref
+      FROM orders
+      WHERE tx_ref = $1`,
+      [tx_ref]
+       );
 
-    if (status === 'success') {
-      await pool.query(
-        `UPDATE orders
-         SET payment_status = 'completed',
-             status = 'payment_verified',
-             payment_id = $1,
-             payment_reference = $2,
-             payment_verified_at = NOW()
-         WHERE tx_ref = $3`,
-        [chapaData.id, chapaData.reference, tx_ref]
-      );
-    } else {
-      await pool.query(
-        `UPDATE orders SET payment_status = 'failed', status = 'payment_failed' WHERE tx_ref = $1`,
-        [tx_ref]
-      );
-    }
+if (orderResult.rows.length === 0) {
+  return res.status(404).send('Order not found');
+}
 
-    res.redirect(`${process.env.FRONTEND_URL}/customer/orders?payment=${status}`);
-  } catch (err) {
-    console.error('Verify error:', err.response?.data || err.message);
-    res.redirect(`${process.env.FRONTEND_URL}/customer/orders?payment=failed`);
-  }
+const order = orderResult.rows[0];
+
+const amountMatches =
+  Number(chapaData.amount) === Number(order.total_amount);
+
+const currencyMatches =
+  chapaData.currency === 'ETB';
+
+const referenceMatches =
+  chapaData.tx_ref === order.tx_ref;
+
+if (
+  chapaData.status === 'success' &&
+  amountMatches &&
+  currencyMatches &&
+  referenceMatches
+) {
+  await pool.query(
+    `UPDATE orders
+     SET payment_status = 'completed',
+         status = 'payment_verified',
+         payment_id = $1,
+         payment_reference = $2,
+         payment_verified_at = NOW(),
+         updated_at = NOW()
+     WHERE tx_ref = $3`,
+    [chapaData.id, chapaData.reference, tx_ref]
+  );
+
+  return res.redirect(
+    `${process.env.FRONTEND_URL}/customer/orders?payment=success`
+  );
+}
+
+// Do not mark an order as paid if verification fails.
+return res.redirect(
+  `${process.env.FRONTEND_URL}/customer/orders?payment=failed`
+);
 });
 
 // GET /api/orders/my — customer's own orders
