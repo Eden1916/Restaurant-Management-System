@@ -12,13 +12,11 @@ router.post('/', authenticate, async (req, res) => {
   const {
     items,
     total_amount,
-    status,
     order_type,
     delivery_address,
     delivery_phone,
     special_instructions,
     payment_method,
-    payment_status,
   } = req.body;
 
   if (!items || items.length === 0) {
@@ -40,13 +38,13 @@ router.post('/', authenticate, async (req, res) => {
       [
         user.userId,
         total_amount,
-        status,
+        'pending_payment',
         order_type || 'dine_in',
         delivery_address || null,
         delivery_phone || null,
         special_instructions || null,
         payment_method || 'tele_birr',
-        payment_status,
+        'pending',
         tx_ref,
       ]
     );
@@ -71,8 +69,8 @@ router.post('/', authenticate, async (req, res) => {
         first_name: user.username || 'Customer',
         last_name: 'Customer',
         tx_ref,
-        callback_url: `http://localhost:5000/api/orders/verify/${tx_ref}`,
-        return_url: `http://localhost:5173/customer/orders?payment=success`,
+        callback_url: `${process.env.BACKEND_URL}/api/orders/verify/${tx_ref}`,
+        return_url: `${process.env.FRONTEND_URL}/customer/orders?payment=success`,
         customization: {
           title: 'Liyu Restaurant',
           description: `Order ${order.id}`,
@@ -127,10 +125,10 @@ router.get('/verify/:tx_ref', async (req, res) => {
       );
     }
 
-    res.redirect(`http://localhost:5173/customer/orders?payment=${status}`);
+    res.redirect(`${process.env.FRONTEND_URL}/customer/orders?payment=${status}`);
   } catch (err) {
     console.error('Verify error:', err.response?.data || err.message);
-    res.redirect('http://localhost:5173/customer/orders?payment=failed');
+    res.redirect(`${process.env.FRONTEND_URL}/customer/orders?payment=failed`);
   }
 });
 
