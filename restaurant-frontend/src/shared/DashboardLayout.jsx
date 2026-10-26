@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Menu } from "lucide-react";
 import SideBar from "./SideBar";
+import DemoBanner from "../admin/DemoBanner";
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -34,6 +35,8 @@ export default function DashboardLayout({ children }) {
           </button>
           <span className="text-lg font-bold text-red-950">Liyu</span>
         </header>
+
+                <DemoBanner />
 
         {/* Page content */}
         <main className="flex-1 p-6">{children}</main>

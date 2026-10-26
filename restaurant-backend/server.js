@@ -30,6 +30,38 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
+const jwt = require('jsonwebtoken');
+
+// Demo accounts that may only read data
+const DEMO_READONLY_EMAILS = (process.env.DEMO_READONLY_EMAILS || 'demo.admin@example.com')
+  .split(',')
+  .map((e) => e.trim().toLowerCase());
+
+function blockDemoWrites(req, res, next) {
+  // Reads are always allowed
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
+  // Logging in must still work
+  if (req.path === '/auth/login') return next();
+
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (!token) return next();
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (payload.email && DEMO_READONLY_EMAILS.includes(payload.email.toLowerCase())) {
+      return res.status(403).json({
+        error: 'This is a read-only demo account. Changes are disabled.',
+        demo: true,
+      });
+    }
+  } catch (err) {
+    // invalid or expired token: let the normal auth middleware deal with it
+  }
+  next();
+}
+
+app.use('/api', blockDemoWrites);
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('uploads'));
 

@@ -4,6 +4,11 @@ import { authLogin } from "./api/auth"
 import { useNavigate } from "react-router-dom"
 import { ChefHat, Eye, EyeOff, Mail, Lock } from "lucide-react"
 
+const DEMO_ACCOUNTS = {
+  customer: { label: "Try as Customer", email: "demo.customer@example.com", password: "demo1234!", readOnly: false },
+  admin:    { label: "Try as Admin",    email: "demo.admin@example.com",    password: "demo1234!", readOnly: true },
+};
+
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -12,12 +17,16 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleLogin(e) {
-    e.preventDefault();
-    setError("");
+  async function doLogin(emailValue, passwordValue, isReadOnlyDemo = false){
+     setError("");
     setLoading(true);
     try {
-      const user = await authLogin(email, password);
+      const user = await authLogin(emailValue, passwordValue);
+      if(isReadOnlyDemo){
+        localStorage.setItem("isDemoAdmin", "true")
+      } else {
+        localStorage.removeItem("isDemoAdmin")
+      }
       const intendedPage = localStorage.getItem("intendedPage");
       if (intendedPage) {
         localStorage.removeItem("intendedPage");
@@ -36,6 +45,14 @@ export default function Login() {
       setLoading(false);
     }
   }
+  
+    
+  function handleLogin(e) {
+    e.preventDefault();
+    doLogin(email, password)
+  }
+
+
 
   return (
     <div className="min-h-screen flex">
@@ -193,6 +210,28 @@ export default function Login() {
               </svg>
               Continue with Google
             </a>
+            {/* Demo access */}
+<div className="mt-5">
+  <p className="text-xs text-gray-400 text-center mb-2">Just exploring? Try a demo account</p>
+  <div className="grid grid-cols-2 gap-3">
+    {Object.values(DEMO_ACCOUNTS).map((d) => (
+      <button
+        key={d.email}
+        type="button"
+        disabled={loading}
+        onClick={() => doLogin(d.email, d.password, d.readOnly)}
+        className="border border-red-950 text-red-950 rounded-xl py-2.5 text-sm font-medium hover:bg-red-950 hover:text-white active:scale-[0.98] transition-all disabled:opacity-60"
+      >
+        {d.label}
+      </button>
+    ))}
+  </div>
+  {loading && (
+    <p className="text-xs text-gray-400 text-center mt-2">
+      The server may take up to a minute to wake up on first load. Please wait...
+    </p>
+  )}
+</div>
 
             <div className="mt-6 pt-6 border-t border-gray-100 text-center text-sm text-gray-600">
               Don't have an account?{" "}
