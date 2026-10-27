@@ -1,4 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import { ConfirmProvider } from "./components/ConfirmProvider.jsx";
 import MainPage from "./MainPage.jsx";
 import Login from "./Login.jsx";
 import Signup from "./Signup.jsx";
@@ -45,6 +47,8 @@ function ProtectedRoute({ children, allowedRoles }) {
 
 function App() {
   return (
+    <ConfirmProvider>
+    <Toaster position="top-right" />
     <Routes>
       {/* Public */}
       <Route path="/" element={<MainPage />} />
@@ -86,6 +90,7 @@ function App() {
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </ConfirmProvider>
   );
 }
 

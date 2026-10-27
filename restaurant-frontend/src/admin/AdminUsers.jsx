@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { useConfirm } from "../components/ConfirmProvider";
 import DashboardLayout from "../shared/DashboardLayout";
 import { Users, Pencil, Trash2, Plus, X } from "lucide-react";
 
@@ -20,6 +22,7 @@ export default function AdminUsers() {
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const token = localStorage.getItem("token");
+  const confirmAction = useConfirm();
 
   useEffect(() => { fetchUsers(); }, []);
 
@@ -52,14 +55,15 @@ export default function AdminUsers() {
       body: JSON.stringify(body),
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (res.ok) {
+      toast.success(editId ? "User updated" : "User created");
       fetchUsers();
       setForm(emptyForm);
       setShowForm(false);
       setEditId(null);
     } else {
-      alert(data.error || "Failed to save user");
+      toast.error(data.error || data.message || "Failed to save user");
     }
   }
 
@@ -69,11 +73,12 @@ export default function AdminUsers() {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ newRole }),
     });
-    const data = await res.json();
-    if (data.success) {
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success) {
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
+      toast.success("Role updated");
     } else {
-      alert(data.message);
+      toast.error(data.error || data.message || "Failed to update role");
     }
   }
 
@@ -83,24 +88,40 @@ export default function AdminUsers() {
     setShowForm(true);
   }
 
-  async function handleDelete(id) {
-    if (!confirm("Delete this user? This cannot be undone.")) return;
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${id}`, {
+  async function handleDelete(user) {
+    const ok = await confirmAction({
+      title: "Delete user?",
+      message: `${user.username} will lose access to their account. You can restore the user later from this page.`,
+      confirmText: "Delete",
+    });
+    if (!ok) return;
+
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${user.id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
-    }); if (res.ok) fetchUsers();
-
-    else alert("Failed to delete user");
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      toast.success("User deleted");
+      fetchUsers();
+    } else {
+      toast.error(data.error || data.message || "Failed to delete user");
+    }
   }
 
   async function handleRestore(id) {
-  const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${id}/restore`, {
-    method: "PUT",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (res.ok) fetchUsers();
-  else alert("Failed to restore user");
-}
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${id}/restore`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      toast.success("User restored");
+      fetchUsers();
+    } else {
+      toast.error(data.error || data.message || "Failed to restore user");
+    }
+  }
 
 
   return (

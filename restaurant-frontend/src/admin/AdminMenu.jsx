@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { useConfirm } from "../components/ConfirmProvider";
 import DashboardLayout from "../shared/DashboardLayout";
 import { UtensilsCrossed, Plus, Pencil, Trash2 } from "lucide-react";
 
@@ -21,6 +23,7 @@ export default function AdminMenu() {
   const [imageFile, setImageFile] = useState(null);
   const [editId, setEditId] = useState(null);
   const token = localStorage.getItem("token");
+  const confirmAction = useConfirm();
 
   useEffect(() => {
     Promise.all([
@@ -65,8 +68,9 @@ export default function AdminMenu() {
       });
     }
 
-    const data = await res.json();
+        const data = await res.json().catch(() => ({}));
     if (res.ok) {
+      toast.success(editId ? "Menu item updated" : "Menu item added");
       fetch(`${import.meta.env.VITE_API_URL}/menu`)
         .then((r) => r.json())
         .then((d) => setMenuItems(Array.isArray(d) ? d : []));
@@ -75,7 +79,7 @@ export default function AdminMenu() {
       setShowForm(false);
       setEditId(null);
     } else {
-      alert(data.error || "Failed to save item");
+      toast.error(data.error || data.message || "Failed to save item");
     }
   }
 
@@ -93,13 +97,29 @@ export default function AdminMenu() {
     setImageFile(null);
   }
 
-  async function handleDelete(id) {
-    if (!confirm("Remove this menu item?")) return;
-    await fetch(`${import.meta.env.VITE_API_URL}/menu/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
+    async function handleDelete(item) {
+    const ok = await confirmAction({
+      title: "Delete menu item?",
+      message: `"${item.name}" will be permanently removed from the menu.`,
+      confirmText: "Delete",
     });
-    setMenuItems((prev) => prev.filter((i) => i.id !== id));
+    if (!ok) return;
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/menu/${item.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error || data.message || "Failed to delete item");
+        return;
+      }
+      setMenuItems((prev) => prev.filter((i) => i.id !== item.id));
+      toast.success("Menu item deleted");
+    } catch {
+      toast.error("Network error, please try again");
+    }
   }
 
   return (
@@ -206,7 +226,7 @@ export default function AdminMenu() {
                       <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-red-950 transition">
                         <Pencil className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-700 transition">
+                      <button onClick={() => handleDelete(item)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-700 transition">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>

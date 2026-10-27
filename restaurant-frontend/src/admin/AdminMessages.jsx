@@ -1,4 +1,4 @@
-
+import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import DashboardLayout from "../shared/DashboardLayout";
 import { Mail, RefreshCw } from "lucide-react";
@@ -43,39 +43,33 @@ export default function AdminMessages() {
 
   async function updateStatus(id, status) {
     setUpdatingId(id);
-    setError("");
 
     try {
-      const response = await fetch(
-        `${API_URL}/admin/messages/${id}/status`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ status }),
-        }
-      );
+      const response = await fetch(`${API_URL}/admin/messages/${id}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message || "Failed to update message");
+        throw new Error(data.error || data.message || "Failed to update message");
       }
 
       setMessages((current) =>
-        current.map((item) =>
-          item.id === id ? { ...item, status } : item
-        )
+        current.map((item) => (item.id === id ? { ...item, status } : item))
       );
+      toast.success(`Message marked as ${status}`);
     } catch (err) {
-      setError(err.message || "Could not update message");
+      toast.error(err.message || "Could not update message");
     } finally {
       setUpdatingId(null);
     }
   }
-
   return (
     <DashboardLayout>
       <div className="space-y-6">

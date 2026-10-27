@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { useConfirm } from "../components/ConfirmProvider";
 import DashboardLayout from "../shared/DashboardLayout";
 import { CalendarDays } from "lucide-react";
 
@@ -13,6 +15,7 @@ const statusColors = {
 export default function AdminReservations() {
   const [reservations, setReservations] = useState([]);
   const [tableInputs, setTableInputs] = useState({});
+  const confirmAction = useConfirm();
   const token = localStorage.getItem("token");
 
   useEffect(() => { fetchReservations(); }, []);
@@ -26,31 +29,59 @@ export default function AdminReservations() {
   }
 
   async function updateStatus(id, status, tableNumber) {
-    await fetch(`${import.meta.env.VITE_API_URL}/reservations/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ status, table_number: tableNumber || null }),
-    });
-    fetchReservations();
+    if (status === "rejected") {
+      const ok = await confirmAction({
+        title: "Reject reservation?",
+        message: "The customer's reservation request will be rejected.",
+        confirmText: "Reject",
+      });
+      if (!ok) return;
+    }
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/reservations/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status, table_number: tableNumber || null }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        toast.error(data.error || data.message || "Failed to update reservation");
+        return;
+      }
+
+      toast.success(`Reservation ${status}`);
+      fetchReservations();
+    } catch {
+      toast.error("Network error, please try again");
+    }
   }
 
   async function handleAssignTable(item) {
     const tableNumber = tableInputs[item.id];
     if (!tableNumber) {
-      alert("Please enter a table number");
+      toast.error("Please enter a table number");
       return;
     }
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/reservations/${item.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ status: "assigned", table_number: tableNumber }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      setTableInputs((prev) => ({ ...prev, [item.id]: "" }));
-      fetchReservations();
-    } else {
-      alert(data.error || "Failed to assign table");
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/reservations/${item.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: "assigned", table_number: tableNumber }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.success) {
+        toast.success(`Table ${tableNumber} assigned`);
+        setTableInputs((prev) => ({ ...prev, [item.id]: "" }));
+        fetchReservations();
+      } else {
+        toast.error(data.error || data.message || "Failed to assign table");
+      }
+    } catch {
+      toast.error("Network error, please try again");
     }
   }
 

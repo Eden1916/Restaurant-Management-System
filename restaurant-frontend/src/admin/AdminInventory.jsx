@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from 'react-hot-toast'
 import DashboardLayout from "../shared/DashboardLayout";
 import { AlertTriangle, Check } from "lucide-react";
 
@@ -20,11 +21,23 @@ export default function AdminInventory() {
   }
 
   async function handleResolve(id) {
-    await fetch(`${import.meta.env.VITE_API_URL}/inventory/${id}/resolve`, {
-      method: "PUT",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchReports();
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/inventory/${id}/resolve`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        toast.error(data.error || data.message || "Failed to resolve report");
+        return;
+      }
+
+      toast.success("Report marked as resolved");
+      fetchReports();
+    } catch {
+      toast.error("Network error, please try again");
+    }
   }
 
   const filtered = filter === "all" ? reports : reports.filter((r) => r.status === filter);

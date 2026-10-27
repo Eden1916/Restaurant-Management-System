@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import DashboardLayout from "../shared/DashboardLayout";
 import { FileText, TrendingUp, ShoppingBag, Users, UtensilsCrossed, CalendarDays, CreditCard } from "lucide-react";
 import { useState, useEffect } from "react";

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import DashboardLayout from "../shared/DashboardLayout";
 import { ShoppingBag, CheckCircle, Clock, XCircle, ChefHat } from "lucide-react";
 
@@ -35,12 +36,24 @@ export default function AdminOrders() {
   }
 
   async function updateStatus(orderId, newStatus) {
-    await fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/status`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ status: newStatus }),
-    });
-    fetchOrders();
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        toast.error(data.error || data.message || "Failed to update order");
+        return;
+      }
+
+      toast.success(`Order #${orderId} marked as ${statusConfig[newStatus]?.label}`);
+      fetchOrders();
+    } catch {
+      toast.error("Network error, please try again");
+    }
   }
 
   const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter);
