@@ -216,4 +216,4 @@ This creates 9 tables: `users`, `categories`, `menu_items`, `orders`, `order_ite
 ## 👤 Author
 
 **Eden Sahlie**, software engineering student
-[GitHub](https://github.com/Eden1916) · [LinkedIn](https://www.linkedin.com/in/eden-sahlie-729b45357/) · [Email] (edensahlie19@gmail.com)
+[GitHub](https://github.com/Eden1916) · [LinkedIn](https://www.linkedin.com/in/eden-sahlie-729b45357/) · [Email](edensahlie19@gmail.com)
