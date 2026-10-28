@@ -3,7 +3,7 @@
 A full-stack web app for running a restaurant: customers browse the menu, order online, pay, book tables and leave reviews, while staff and admins manage everything from role-based dashboards.
 
 **🔗 Live demo:** [https://restaurant-management-system-git-master-eden-sahlie-s-projects.vercel.app/]
-**⚙️ API:** [https://restaurant-management-system-invy.onrender.com]
+**⚙️ API:** [https://restaurant-management-system-invy.onrender.com/api/test]
 
 > ⏳ **Note:** the backend runs on a free hosting tier that goes to sleep when idle. The first request can take up to a minute to wake it up. After that it's fast.
 
