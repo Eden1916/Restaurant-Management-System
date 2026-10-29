@@ -106,6 +106,45 @@ auth, role
 |---|---|
 | ![Admin](docs/screenshots/admin-dashboard.png) | ![Users](docs/screenshots/admin-users.png) |
 
+## 🐳 Run with Docker (quickest way)
+
+**Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+```bash
+git clone TODO_REPO_URL
+cd restaurant-project
+docker compose up --build
+```
+
+This starts three containers:
+
+| Service | URL |
+|---|---|
+| Frontend (React, served by nginx) | <http://localhost:5173> |
+| Backend API (Node/Express) | <http://localhost:5000/api/test> |
+| PostgreSQL database | `localhost:5433` (user `postgres`, password `postgres`, database `restaurant`) |
+
+The database is created automatically from `database/schema.sql`, with a few starter menu categories from `database/seed.sql`.
+
+**Create an admin user:**
+
+1. Open <http://localhost:5173> and sign up an account.
+2. Promote it to admin:
+   ```bash
+   docker compose exec db psql -U postgres -d restaurant -c "UPDATE users SET role='admin' WHERE email='your-email@example.com';"
+   ```
+3. Log out and log in again to see the admin dashboard.
+
+**Useful commands:**
+
+```bash
+docker compose down        # stop everything (data is kept)
+docker compose down -v     # stop and delete the database and uploads
+docker compose logs backend
+```
+
+> Google sign-in and online payments need real keys. To enable them, create a `.env` file in the project root with `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `CHAPA_SECRET_KEY`, `EMAIL_USER` and `EMAIL_PASS`. Docker Compose reads it automatically. Everything else works without them.
+
 ## ⚙️ Run it locally
 
 **Requirements:** Node.js 18+, a PostgreSQL database (local or Neon)
@@ -211,7 +250,6 @@ This creates 9 tables: `users`, `categories`, `menu_items`, `orders`, `order_ite
 
 - [ ] Automated tests and a CI pipeline
 - [ ] Real-time order updates for the kitchen (WebSockets)
-- [ ] Docker setup for one-command local development
 
 ## 👤 Author
 
