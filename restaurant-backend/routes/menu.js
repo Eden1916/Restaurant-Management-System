@@ -5,20 +5,38 @@ const path = require('path');
 const multer = require('multer');
 const { authenticate } = require('../middleware/auth');
 const { authorize } = require('../middleware/role');
+const cloudinary = require("cloudinary").v2
+
+cloudinary.config({
+  cloud_name : process.env.CLOUDINARY_CLOUD_NAME,
+  api_key : process.env.CLOUDINARY_API_KEY,
+  api_secret : process.env.CLOUDINARY_API_SECRET
+})
+
+function uploadToCloudinary(buffer) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'restaurant' },
+      (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+        resolve(result);
+      }
+    );
+    stream.end(buffer);
+  });
+}
 
 // Multer setup for local disk storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
-});
+const storage = multer.memoryStorage()
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
   fileFilter: (req, file, cb) => {
     const allowed = /jpeg|jpg|png|webp/;
-    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
     const mime = allowed.test(file.mimetype);
-    if (ext && mime) cb(null, true);
+    if (mime) cb(null, true);
     else cb(new Error('Only image files are allowed'));
   }
 });
@@ -89,11 +107,17 @@ router.post('/', authenticate, authorize('admin'), (req, res, next) => {
       return res.status(400).json({ error: 'Category, name, and price are required' });
     }
 
-    // Use uploaded local file path or provided URL
-    const image_url = req.file
-      ? `/uploads/${req.file.filename}`
-      : (req.body.image_url || null);
+    let image_url = req.body.image_url || null;
 
+if (req.file) {
+  try {
+    const uploaded = await uploadToCloudinary(req.file.buffer);
+    image_url = uploaded.secure_url;
+  } catch (uploadErr) {
+    console.error('Cloudinary upload failed:', uploadErr);
+    return res.status(500).json({ error: 'Image upload failed' });
+  }
+}
     // Convert is_available to boolean — FormData sends strings
     const isAvailable = is_available === false || is_available === 'false' ? false : true;
 
@@ -125,11 +149,18 @@ router.put('/:id', authenticate, authorize('admin'), (req, res, next) => {
     const { id } = req.params;
     const { category_id, name, description, price, is_available } = req.body;
 
-    // Use uploaded local file path, or provided URL, or keep existing
-    const image_url = req.file
-      ? `/uploads/${req.file.filename}`
-      : (req.body.image_url || null);
+    // Use the uploaded file (stored on Cloudinary), or the provided URL, or keep the existing one
+let image_url = req.body.image_url || null;
 
+if (req.file) {
+  try {
+    const uploaded = await uploadToCloudinary(req.file.buffer);
+    image_url = uploaded.secure_url;
+  } catch (uploadErr) {
+    console.error('Cloudinary upload failed:', uploadErr);
+    return res.status(500).json({ error: 'Image upload failed' });
+  }
+}
     // Convert is_available to boolean — FormData sends strings
     const isAvailable = is_available === false || is_available === 'false' ? false : true;
 
