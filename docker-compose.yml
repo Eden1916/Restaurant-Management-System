@@ -37,6 +37,9 @@ services:
       CHAPA_SECRET_KEY: ${CHAPA_SECRET_KEY:-}
       EMAIL_USER: ${EMAIL_USER:-}
       EMAIL_PASS: ${EMAIL_PASS:-}
+      CLOUDINARY_CLOUD_NAME: ${Name:-}
+      CLOUDINARY_API_KEY: ${API_KEY:-}
+      CLOUDINARY_API_SECRET: ${API_SECRET:-}
     ports:
       - "5000:5000"
     volumes:
