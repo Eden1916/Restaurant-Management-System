@@ -38,13 +38,13 @@ router.post('/', authenticate, async (req, res) => {
       [
         user.userId,
         total_amount,
-        'pending_payment',
+        'payment_failed',
         order_type || 'dine_in',
         delivery_address || null,
         delivery_phone || null,
         special_instructions || null,
         payment_method || 'tele_birr',
-        'pending',
+        'failed',
         tx_ref,
       ]
     );
@@ -151,6 +151,10 @@ if (
 }
 
 // Do not mark an order as paid if verification fails.
+await pool.query(
+  `UPDATE orders SET payment_status = 'failed', status = 'payment_failed', updated_at = NOW() WHERE tx_ref = $1`,
+  [tx_ref]
+);
 return res.redirect(
   `${process.env.FRONTEND_URL}/customer/orders?payment=failed`
 );
